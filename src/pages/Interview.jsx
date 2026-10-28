@@ -1,4 +1,4 @@
-function Interview(){
+function Interview() {
   return (<>
     <div>
       <header>

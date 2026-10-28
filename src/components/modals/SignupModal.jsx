@@ -4,7 +4,7 @@ function SignupModal() {
   return (
     <Modal>
       <div>
-        <button>← 로그인으로</button>
+        <button>← 로그인 화면</button>
 
         <h2>회원가입</h2>
         <p>계정 정보를 입력하고 약관에 동의해 주세요.</p>
@@ -52,13 +52,13 @@ function SignupModal() {
               <input type="checkbox" />
               <span>[선택] 문서 저장 동의</span>
             </div>
-            <p>자소서 · 이력서 · 면접 대화록을 저장해 마이페이지에서 다시 볼 수 있어요.</p>
+            <p>내 이력서 · 자기소개서 · 면접 대화를 마이페이지에서 확인하실 수 있어요.</p>
           </div>
         </div>
 
         <button>가입하기</button>
 
-        <p>필수 항목에 동의하면 가입할 수 있어요.</p>
+        <p>필수 항목 동의 후 가입이 가능합니다.</p>
       </div>
     </Modal>
   )
