@@ -128,11 +128,11 @@ function Cl() {
                 setShowCard(true);
               }}
             >
-              자소서 첨삭 받기
+              AI 첨삭 받기
             </button>
-            <button type="button">맞춤법(띄어쓰기) 검사</button>
+            <button type="button">맞춤법 검사</button>
           </div>
-          <button type="button">마이페이지에 저장</button>
+          <button type="button">답변 저장</button>
         </div>
       </section>
       {/* 오른쪽 첨삭 패널: showFeedback이 true일 때만 보임 */}

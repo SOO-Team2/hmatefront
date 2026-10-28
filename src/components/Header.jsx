@@ -13,8 +13,8 @@ function Header() {
     <header>
       {/* a 태그 대신 Link: 클릭해도 페이지가 새로고침되지 않아서 입력 중인 글이 안 사라짐 */}
       <Link to="/">
-        <img src="/logo.svg" alt="합격 메이트" />
-        합격 메이트
+        <img src="/logo.svg" alt="합격메이트" />
+        합격메이트
       </Link>
 
       {/* NavLink: Link와 같지만, 지금 보고 있는 페이지의 메뉴에 "active" 이름표가 자동으로 붙음 */}
