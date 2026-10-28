@@ -1,6 +1,11 @@
+import { useState } from "react"
 import { Link } from "react-router"
+import LoginModal from "../components/modals/LoginModal"
 
 function Home() {
+  // 로그인 모달이 열려 있는지 기억하는 상태 (false = 닫힘, true = 열림)
+  const [showLogin, setShowLogin] = useState(false)
+
   return (
     <div>
       {/* 1. 메인 히어로 섹션 */}
@@ -45,7 +50,7 @@ function Home() {
           <div>
             <h3>맛보기 면접</h3>
             <p>꼬리 질문 챗봇 1회</p>
-            <Link to="/interview"> {/* 맛보기 면접 링크 연결 */}
+            <Link to="/interview">
               <button type="button">맛보기 면접 시작</button>
             </Link>
           </div>
@@ -54,7 +59,7 @@ function Home() {
           <div>
             <h3>자소서 맛보기</h3>
             <p>맞춤법 · 문장 다듬기</p>
-            <Link to="/cl"> {/* 자소서 맛보기 링크 연결 */}
+            <Link to="/cl">
               <button type="button">자소서 붙여넣기</button>
             </Link>
           </div>
@@ -64,8 +69,14 @@ function Home() {
       {/* 4. 하단 로그인 유도 배너 */}
       <section>
         <h2>지금, 로그인하고 합격으로 한 발짝!</h2>
-        <button type="button">시작하기</button>
+        {/* 누르면 showLogin을 true로 바꿔 로그인 모달을 엶 */}
+        <button type="button" onClick={() => setShowLogin(true)}>
+          시작하기
+        </button>
       </section>
+
+      {/* showLogin이 true일 때만 화면에 로그인 모달 창을 띄움 */}
+      {showLogin && <LoginModal />}
     </div>
   )
 }
