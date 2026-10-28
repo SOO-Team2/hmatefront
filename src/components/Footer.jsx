@@ -3,21 +3,16 @@ function Footer() {
   return (
     <footer>
       <div>
-        <img src="/logo.svg" alt="합격 메이트" />
-        <span>합격 메이트</span>
-      </div>
-
-      <div>
         <span>이용약관</span>
         <span>개인정보처리방침</span>
       </div>
 
       <div>
         <p>TEAM2</p>
-        <p>문의 하기</p>
+        <p>문의하기</p>
       </div>
 
-      <p>© 2026 합격 메이트. All rights reserved.</p>
+      <p>© 2026 합격메이트. All rights reserved.</p>
     </footer>
   );
 }

@@ -4,7 +4,7 @@ function LoginModal() {
   return (
     <Modal>
       <div>
-        <button>← 홈으로</button>
+        <button>← 홈</button>
 
         <h2>로그인</h2>
 
