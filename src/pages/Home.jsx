@@ -1,3 +1,5 @@
+import { Link } from "react-router"
+
 function Home() {
   return (
     <div>
@@ -5,7 +7,7 @@ function Home() {
       <section>
         <span>AI 자소서 · 면접 코치</span>
         <h1>
-          자소서부터 면접까지,<br />
+          자소서부터 면접까지,<br/>
           합격까지 함께 준비해요
         </h1>
         <p>
@@ -43,14 +45,18 @@ function Home() {
           <div>
             <h3>맛보기 면접</h3>
             <p>꼬리 질문 챗봇 1회</p>
-            <button>맛보기 면접 시작</button>
+            <Link to="/interview"> {/* 맛보기 면접 링크 연결 */}
+              <button type="button">맛보기 면접 시작</button>
+            </Link>
           </div>
 
           {/* 자소서 맛보기 */}
           <div>
             <h3>자소서 맛보기</h3>
             <p>맞춤법 · 문장 다듬기</p>
-            <button>자소서 붙여넣기</button>
+            <Link to="/cl"> {/* 자소서 맛보기 링크 연결 */}
+              <button type="button">자소서 붙여넣기</button>
+            </Link>
           </div>
         </div>
       </section>
@@ -58,7 +64,7 @@ function Home() {
       {/* 4. 하단 로그인 유도 배너 */}
       <section>
         <h2>지금, 로그인하고 합격으로 한 발짝!</h2>
-        <button>시작하기</button>
+        <button type="button">시작하기</button>
       </section>
     </div>
   )
