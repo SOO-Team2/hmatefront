@@ -4,7 +4,7 @@ function SignupModal() {
   return (
     <Modal>
       <div>
-        <button>← 로그인 화면</button>
+        <button>← 로그인</button>
 
         <h2>회원가입</h2>
         <p>계정 정보를 입력하고 약관에 동의해 주세요.</p>

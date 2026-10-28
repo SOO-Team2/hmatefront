@@ -3,11 +3,6 @@ function Footer() {
   return (
     <footer>
       <div>
-        <img src="/logo.svg" alt="합격메이트" />
-        <span>합격메이트</span>
-      </div>
-
-      <div>
         <span>이용약관</span>
         <span>개인정보처리방침</span>
       </div>
