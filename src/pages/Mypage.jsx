@@ -36,18 +36,17 @@ function Mypage() {
       <aside>
         <div>
           <h2>[회원 이름]님</h2>
-          <p>[아이디]</p>
         </div>
 
         <nav>
-          <button type="button" onClick={() => setActiveTab("cl")}>
-            자기소개서
-          </button>
           <button type="button" onClick={() => setActiveTab("resume")}>
             이력서
           </button>
+          <button type="button" onClick={() => setActiveTab("cl")}>
+            자기소개서
+          </button>
           <button type="button" onClick={() => setActiveTab("history")}>
-            지난 대화
+            면접 기록
           </button>
           <button type="button" onClick={() => setActiveTab("profile")}>
             회원정보 수정
@@ -63,13 +62,11 @@ function Mypage() {
             <div>
               <h2>자기소개서</h2>
               <Link to="/cl">
-                <button type="button">새 자소서 작성 →</button>
+                <button type="button">새 자기소개서 작성 →</button>
               </Link>
             </div>
 
-            <p>저장한 자소서</p>
-
-            {/* 자소서 카드 1 */}
+            {/* 자기소개서 카드 1 */}
             <div>
               <div>
                 <h3>불편을 데이터로 증명하는 사람</h3>
@@ -109,9 +106,9 @@ function Mypage() {
             <h2>이력서</h2>
 
             <div>
-              {/* PDF 첨부 버튼 클릭 시 숨겨진 파일 선택창 실행 */}
+              {/* PDF 업로드 버튼 클릭 시 숨겨진 파일 선택창 실행 */}
               <button type="button" onClick={() => fileInputRef.current?.click()}>
-                PDF 첨부
+                PDF 업로드
               </button>
               <input
                 type="file"
@@ -120,7 +117,7 @@ function Mypage() {
                 style={{ display: "none" }}
                 onChange={handleFileChange}
               />
-              <button type="button">기본 양식으로 작성</button>
+              <button type="button">직접 입력하기</button>
             </div>
 
             <div>
@@ -179,19 +176,18 @@ function Mypage() {
           </section>
         )}
 
-        {/* 지난 대화 탭 */}
+        {/* 면접 기록 탭 */}
         {activeTab === "history" && (
           <section>
             <div>
-              <h2>마이페이지 — 지난 대화 이력</h2>
-              <span>면접 피드백 & 불일치 기록</span>
+              <h2>면접 기록</h2>
             </div>
 
             {/* 대화 기록 카드 1 */}
             <div>
               <div>
-                <span>2026.10.22 (목)</span>
                 <span>IT · 개발 &gt; 백엔드 개발</span>
+                <span>2026.10.22 (목)</span>
               </div>
               <p>피드백 · 경험 설명은 구체적이에요. 팀 인원 수가 자소서와 달라 불일치 경고 1회가 있었어요.</p>
               <div>
@@ -203,8 +199,8 @@ function Mypage() {
             {/* 대화 기록 카드 2 */}
             <div>
               <div>
-                <span>2026.10.20 (화)</span>
                 <span>IT · 개발 &gt; 데이터 분석</span>
+                <span>2026.10.20 (화)</span>
               </div>
               <p>피드백 · 직무 역량 질문 2개가 '부족'으로 분류됐어요. 사용 도구와 결과를 함께 말해 보세요.</p>
               <div>
@@ -218,7 +214,7 @@ function Mypage() {
         {/* 회원정보 수정 탭 */}
         {activeTab === "profile" && (
           <section>
-            <h2>마이페이지 — 회원정보 수정 (개인정보 보호 장치 연동)</h2>
+            <h2>회원정보 수정</h2>
 
             <div>
               <div>

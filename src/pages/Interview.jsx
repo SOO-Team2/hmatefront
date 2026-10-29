@@ -20,9 +20,10 @@ function Interview() {
 
         <div>
           <label>이력서</label>
-          <button>
+          <button onClick={(e) => e.currentTarget.nextElementSibling.click()}> {/* 현재 누른 버튼의 다음 태그 클릭 */}
             PDF 업로드
           </button>
+          <input type="file" accept=".pdf" hidden />
           <button>
             내 이력서 가져오기
           </button>
@@ -30,9 +31,10 @@ function Interview() {
 
         <div>
           <label>자기소개서</label>
-          <button>
+          <button onClick={(e) => e.currentTarget.nextElementSibling.click()}>
             PDF 업로드
           </button>
+          <input type="file" accept=".pdf" hidden />
           <button>
             내 자기소개서 가져오기
           </button>
