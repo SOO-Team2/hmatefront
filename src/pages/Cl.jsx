@@ -8,9 +8,9 @@ import { useState } from "react";
 const API_URL = "http://192.168.1.13:8000";
 // 비회원 맛보기 글자 수 한도 (공백 제외)
 // 서버(routes/cl.py)의 GUEST_MAX_TOTAL_CHARS, MEMBER_MAX_TOTAL_CHARS도 같이 바꿀 것
-const GUEST_LIMIT = 200;
+const GUEST_LIMIT = 500;
 // 회원 글자 수 한도 (공백 제외)
-const MEMBER_LIMIT = 5000;
+const MEMBER_LIMIT = 7000;
 // /\s/g : 공백을 전부 찾는 규칙, replace(..., "") : 찾은 공백을 지움
 const count = (text) => text.replace(/\s/g, "").length;
 
@@ -25,9 +25,9 @@ function Cl() {
   const [personality, setPersonality] = useState("");
   const [plan, setPlan] = useState("");
 
-  // 회원인지 (TODO: 로그인(auth.py)이 생기면 실제 로그인 여부로 바꾸기)
+  // 회원인지 (TODO: auth.py이 생기면 실제 로그인 여부로 바꾸기)
   const isMember = false;
-  // 이 사용자의 글자 수 한도
+  // 이 사용자의 글자 수 한도 # 조건 ? 참일_때_값 : 거짓일_때_값
   const LIMIT = isMember ? MEMBER_LIMIT : GUEST_LIMIT;
 
   const total = count(motivation + growth + personality + plan);
@@ -41,11 +41,11 @@ function Cl() {
   };
 
   // 이 칸(key)의 글을 next로 바꿔도 한도(LIMIT) 안인지
-  // 전체 − 그 칸의 예전 글자 수 + 새 글자 수 ≤ 200
+  // 전체 − 그 칸의 예전 글자 수 + 새 글자 수 ≤ 500
   const inLimit = (key, next) =>
     total - count(values[key]) + count(next) <= LIMIT;
 
-  // 입력칸에 글을 쓸 때: 200자 안이면 반영, 넘으면 무시 → 입력이 막힘
+  // 입력칸에 글을 쓸 때: 500자 안이면 반영, 넘으면 무시 → 입력이 막힘
   const change = (key, next) => {
     if (inLimit(key, next)) {
       setters[key](next);
@@ -168,7 +168,7 @@ function Cl() {
   const [saveMessage, setSaveMessage] = useState("");
 
   // "마이페이지에 저장" 버튼: 제목과 자소서 4칸을 서버에 보내 저장한다
-  // TODO: 로그인(auth.py)이 생기면 로그인 정보(토큰이나 쿠키)도 같이 보내기
+  // auth.py이 생기면 로그인 정보도 같이 보내기
   const save = async () => {
     setSaveMessage("");               // ① 지난 문구 지우기
     setSaving(true);                  // ② "저장 중" 켜기 → 버튼 꺼짐
