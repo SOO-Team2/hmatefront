@@ -130,7 +130,7 @@ function SignupModal({ isOpen = true, onClose, onSwitchToLogin, onSuccess }) {
   return (
     <Modal onClose={onClose}>
       <div>
-        {/* 상단 뒤로가기 버튼: 시안 텍스트 '← 로그인으로' */}
+        {/* 상단 뒤로가기 버튼*/}
         <button
           type="button"
           onClick={() => {
@@ -261,7 +261,7 @@ function SignupModal({ isOpen = true, onClose, onSwitchToLogin, onSuccess }) {
           </button>
         </form>
 
-        {/* 하단 안내 문구 (시안 텍스트) */}
+        {/* 하단 안내 문구*/}
         <p>필수 항목에 동의하면 가입할 수 있어요.</p>
       </div>
     </Modal>

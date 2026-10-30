@@ -92,12 +92,12 @@ function LoginModal({ isOpen = true, onClose, onSuccess, onSwitchToSignup }) {
   };
 
   // ---------------------------------------------------------------------------
-  // 4. 화면 렌더링 (구조 및 로직 중심, CSS는 추후 일괄 작업)
+  // 4. 화면 렌더
   // ---------------------------------------------------------------------------
   return (
     <Modal onClose={onClose}>
       <div>
-        {/* 상단 뒤로가기 버튼: 시안 텍스트 '← 홈으로' */}
+        {/* 상단 뒤로가기 버튼*/}
         <button type="button" onClick={onClose}>
           ← 홈으로
         </button>
@@ -149,7 +149,6 @@ function LoginModal({ isOpen = true, onClose, onSuccess, onSwitchToSignup }) {
           <button type="button">비밀번호 찾기</button>
         </div>
 
-        {/* 구분선 (시안: 아직 회원이 아니신가요?) */}
         <div>
           <span>아직 회원이 아니신가요?</span>
         </div>
