@@ -1,4 +1,26 @@
+import { useState } from "react"
+
 function Interview() {
+  const [resumeName, setResumeName] = useState("")
+  const [clName, setClName] = useState("")
+
+  const handlePdf = async (e, docType) => {
+    const file = e.target.files[0] //<input type="file">
+    if (!file) return
+
+    if (docType === "resume") setResumeName(file.name)
+    if (docType === "cl") setClName(file.name)
+
+    const formData = new FormData()
+    formData.append("file", file)
+    formData.append("doctype", docType) //이력서와 자기소개서 구분
+
+    await fetch("http://127.0.0.1:8000/pdf", {
+      method: "POST",
+      body: formData, //FormData는 headers 쓰면 안 됨
+    })
+  }
+
   return (<>
     <div>
       <header>
@@ -20,10 +42,14 @@ function Interview() {
 
         <div>
           <label>이력서</label>
-          <button onClick={(e) => e.currentTarget.nextElementSibling.click()}> {/* 현재 누른 버튼의 다음 태그 클릭 */}
-            PDF 업로드
-          </button>
-          <input type="file" accept=".pdf" hidden />
+          {resumeName ? (
+            <span>{resumeName}</span>
+          ) : (
+            <button onClick={(e) => e.currentTarget.nextElementSibling.click()}> {/* 현재 누른 버튼의 다음 태그 클릭 */}
+              PDF 업로드
+            </button>
+          )}
+          <input type="file" accept=".pdf" hidden onChange={(e) => handlePdf(e, "resume")} />
           <button>
             내 이력서 가져오기
           </button>
@@ -31,14 +57,20 @@ function Interview() {
 
         <div>
           <label>자기소개서</label>
-          <button onClick={(e) => e.currentTarget.nextElementSibling.click()}>
-            PDF 업로드
-          </button>
-          <input type="file" accept=".pdf" hidden />
+          {clName ? (
+            <span>{clName}</span>
+          ) : (
+            <button onClick={(e) => e.currentTarget.nextElementSibling.click()}>
+              PDF 업로드
+            </button>
+          )}
+          <input type="file" accept=".pdf" hidden onChange={(e) => handlePdf(e, "cl")} />
           <button>
             내 자기소개서 가져오기
           </button>
         </div>
+
+        <button>질문 생성</button>
 
         <div>
           <label>질문 항목</label>

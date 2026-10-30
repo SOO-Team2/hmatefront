@@ -25,7 +25,7 @@ function Cl() {
   const [personality, setPersonality] = useState("");
   const [plan, setPlan] = useState("");
 
-  // 회원인지 (TODO: auth.py이 생기면 실제 로그인 여부로 바꾸기)
+  // 회원인지 (TODO: 로그인(auth.py)이 생기면 실제 로그인 여부로 바꾸기)
   const isMember = false;
   // 이 사용자의 글자 수 한도 # 조건 ? 참일_때_값 : 거짓일_때_값
   const LIMIT = isMember ? MEMBER_LIMIT : GUEST_LIMIT;
@@ -41,11 +41,11 @@ function Cl() {
   };
 
   // 이 칸(key)의 글을 next로 바꿔도 한도(LIMIT) 안인지
-  // 전체 − 그 칸의 예전 글자 수 + 새 글자 수 ≤ 500
+  // 전체 − 그 칸의 예전 글자 수 + 새 글자 수 ≤ 한도
   const inLimit = (key, next) =>
     total - count(values[key]) + count(next) <= LIMIT;
 
-  // 입력칸에 글을 쓸 때: 500자 안이면 반영, 넘으면 무시 → 입력이 막힘
+  // 입력칸에 글을 쓸 때: 한도 안이면 반영, 넘으면 무시 → 입력이 막힘
   const change = (key, next) => {
     if (inLimit(key, next)) {
       setters[key](next);
@@ -168,7 +168,7 @@ function Cl() {
   const [saveMessage, setSaveMessage] = useState("");
 
   // "마이페이지에 저장" 버튼: 제목과 자소서 4칸을 서버에 보내 저장한다
-  // auth.py이 생기면 로그인 정보도 같이 보내기
+  // TODO: 로그인(auth.py)이 생기면 로그인 정보(토큰이나 쿠키)도 같이 보내기
   const save = async () => {
     setSaveMessage("");               // ① 지난 문구 지우기
     setSaving(true);                  // ② "저장 중" 켜기 → 버튼 꺼짐
