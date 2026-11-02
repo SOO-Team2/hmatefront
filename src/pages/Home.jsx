@@ -83,8 +83,7 @@ function Home() {
       {modal === "signup" && (
         <SignupModal
           onClose={() => setModal(null)}
-          onSwitch={() => setModal("login")}
-          onSwitchToLogin={() => setModal("login")}
+          onSwitchToLogin={() => setModal("login")} // 회원가입화면에서 로그인으로 이동
         />
       )}
     </div>

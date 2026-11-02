@@ -75,7 +75,6 @@ function Header() {
       {modal === "signup" && (
         <SignupModal
           onClose={() => setModal(null)}
-          onSwitch={() => setModal("login")}
           onSwitchToLogin={() => setModal("login")}
         />
       )}
