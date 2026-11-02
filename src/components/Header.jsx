@@ -72,12 +72,7 @@ function Header() {
           onSwitchToSignup={() => setModal("signup")}
         />
       )}
-      {modal === "signup" && (
-        <SignupModal
-          onClose={() => setModal(null)}
-          onSwitchToLogin={() => setModal("login")}
-        />
-      )}
+      {modal === "signup" && <SignupModal onSwitch={() => setModal("login")} />}
     </header>
   );
 }
