@@ -31,7 +31,6 @@ function SignupModal({ isOpen = true, onClose, onSwitchToLogin, onSuccess }) {
   const [idChecking, setIdChecking] = useState(false);
   const [isIdChecked, setIsIdChecked] = useState(false); // 중복 확인 통과 여부
   const [idCheckMessage, setIdCheckMessage] = useState(""); // 중복 확인 결과 메시지
-  const [isIdAvailable, setIsIdAvailable] = useState(null); // true: 사용가능, false: 중복/불가, null: 미확인
 
   // 모달이 닫힌 상태라면 화면에 아무것도 그리지 않음
   if (!isOpen) return null;
@@ -43,14 +42,12 @@ function SignupModal({ isOpen = true, onClose, onSwitchToLogin, onSuccess }) {
     const trimmedId = userId.trim();
     if (!trimmedId) {
       setIdCheckMessage("아이디를 입력해 주세요.");
-      setIsIdAvailable(false);
       setIsIdChecked(false);
       return;
     }
 
     if (trimmedId.length < 2) {
       setIdCheckMessage("아이디는 2자 이상 입력해 주세요.");
-      setIsIdAvailable(false);
       setIsIdChecked(false);
       return;
     }
@@ -66,23 +63,19 @@ function SignupModal({ isOpen = true, onClose, onSwitchToLogin, onSuccess }) {
 
       if (!res.ok) {
         setIdCheckMessage(data.detail || "중복 확인에 실패했습니다.");
-        setIsIdAvailable(false);
         setIsIdChecked(false);
         return;
       }
 
       if (data.available) {
         setIdCheckMessage(data.message || "사용 가능한 아이디입니다.");
-        setIsIdAvailable(true);
         setIsIdChecked(true);
       } else {
         setIdCheckMessage(data.message || "이미 사용 중인 아이디입니다.");
-        setIsIdAvailable(false);
         setIsIdChecked(false);
       }
     } catch {
       setIdCheckMessage("서버와 통신할 수 없습니다. 백엔드 서버를 확인해 주세요.");
-      setIsIdAvailable(false);
       setIsIdChecked(false);
     } finally {
       setIdChecking(false);
@@ -223,7 +216,6 @@ function SignupModal({ isOpen = true, onClose, onSwitchToLogin, onSuccess }) {
                   setUserId(e.target.value);
                   // 아이디를 변경하면 중복 확인 통과 상태 초기화
                   setIsIdChecked(false);
-                  setIsIdAvailable(null);
                   setIdCheckMessage("");
                 }}
                 disabled={loading || idChecking}
