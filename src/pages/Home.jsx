@@ -1,10 +1,11 @@
 import { useState } from "react"
 import { Link } from "react-router"
 import LoginModal from "../components/modals/LoginModal"
+import SignupModal from "../components/modals/SignupModal"
 
 function Home() {
-  // 로그인 모달이 열려 있는지 기억하는 상태 (false = 닫힘, true = 열림)
-  const [showLogin, setShowLogin] = useState(false)
+  // 지금 띄워 둔 모달: null = 없음, "login" = 로그인, "signup" = 회원가입
+  const [modal, setModal] = useState(null)
 
   return (
     <div>
@@ -66,14 +67,25 @@ function Home() {
       {/* 4. 하단 로그인 유도 배너 */}
       <section>
         <h2>지금 로그인하고 합격으로 한 발짝</h2>
-        {/* 누르면 showLogin을 true로 바꿔 로그인 모달을 엶 */}
-        <button type="button" onClick={() => setShowLogin(true)}>
+        {/* 시작하기 버튼을 클릭하면 로그인 화면이 나옴 */}
+        <button type="button" onClick={() => setModal("login")}>
           시작하기
         </button>
       </section>
 
-      {/* showLogin이 true일 때만 화면에 로그인 모달 창을 띄움 */}
-      {showLogin && <LoginModal />}
+      {/* modal 상태에 따라 모달을 화면에 올림 */}
+      {modal === "login" && (
+        <LoginModal
+          onClose={() => setModal(null)}
+          onSwitchToSignup={() => setModal("signup")} //로그인화면에서 회원가입으로 이동
+        />
+      )}
+      {modal === "signup" && (
+        <SignupModal
+          onClose={() => setModal(null)}
+          onSwitchToLogin={() => setModal("login")} // 회원가입화면에서 로그인으로 이동
+        />
+      )}
     </div>
   )
 }
