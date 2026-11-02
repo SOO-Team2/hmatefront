@@ -35,4 +35,8 @@ function LoginModal() {
   )
 }
 
+<<<<<<< HEAD
 export default LoginModal
+=======
+export default LoginModal;
+>>>>>>> 1ac275a (feat: Interview.jsx 기능 및 css 빈 파일 추가)
