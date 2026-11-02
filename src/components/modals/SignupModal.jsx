@@ -27,11 +27,70 @@ function SignupModal({ isOpen = true, onClose, onSwitchToLogin, onSuccess }) {
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
+  // 아이디 중복 확인 관련 상태
+  const [idChecking, setIdChecking] = useState(false);
+  const [isIdChecked, setIsIdChecked] = useState(false); // 중복 확인 통과 여부
+  const [idCheckMessage, setIdCheckMessage] = useState(""); // 중복 확인 결과 메시지
+  const [isIdAvailable, setIsIdAvailable] = useState(null); // true: 사용가능, false: 중복/불가, null: 미확인
+
   // 모달이 닫힌 상태라면 화면에 아무것도 그리지 않음
   if (!isOpen) return null;
 
   // ---------------------------------------------------------------------------
-  // 3. 약관 전체 동의 처리 로직
+  // 3. 아이디 중복 확인 API 호출 (/auth/check-id)
+  // ---------------------------------------------------------------------------
+  const handleCheckId = async () => {
+    const trimmedId = userId.trim();
+    if (!trimmedId) {
+      setIdCheckMessage("아이디를 입력해 주세요.");
+      setIsIdAvailable(false);
+      setIsIdChecked(false);
+      return;
+    }
+
+    if (trimmedId.length < 2) {
+      setIdCheckMessage("아이디는 2자 이상 입력해 주세요.");
+      setIsIdAvailable(false);
+      setIsIdChecked(false);
+      return;
+    }
+
+    setIdChecking(true);
+    setIdCheckMessage("");
+
+    try {
+      const res = await fetch(
+        `${API_URL}/auth/check-id?user_id=${encodeURIComponent(trimmedId)}` // 백엔드 get 요청엔 ?뒤에 매개변수 사용
+      );
+      const data = await res.json();
+
+      if (!res.ok) {
+        setIdCheckMessage(data.detail || "중복 확인에 실패했습니다.");
+        setIsIdAvailable(false);
+        setIsIdChecked(false);
+        return;
+      }
+
+      if (data.available) {
+        setIdCheckMessage(data.message || "사용 가능한 아이디입니다.");
+        setIsIdAvailable(true);
+        setIsIdChecked(true);
+      } else {
+        setIdCheckMessage(data.message || "이미 사용 중인 아이디입니다.");
+        setIsIdAvailable(false);
+        setIsIdChecked(false);
+      }
+    } catch {
+      setIdCheckMessage("서버와 통신할 수 없습니다. 백엔드 서버를 확인해 주세요.");
+      setIsIdAvailable(false);
+      setIsIdChecked(false);
+    } finally {
+      setIdChecking(false);
+    }
+  };
+
+  // ---------------------------------------------------------------------------
+  // 4. 약관 전체 동의 처리 로직
   // ---------------------------------------------------------------------------
   // 세 가지 약관이 모두 체크되어 있는지 확인
   const isAllAgreed = serviceAgreed && privacyAgreed && saveAgreed;
@@ -45,7 +104,7 @@ function SignupModal({ isOpen = true, onClose, onSwitchToLogin, onSuccess }) {
   };
 
   // ---------------------------------------------------------------------------
-  // 4. 백엔드 회원가입 API 호출
+  // 5. 백엔드 회원가입 API 호출
   // ---------------------------------------------------------------------------
   const handleSignup = async (e) => {
     e.preventDefault(); // 폼 기본 새로고침 방지
@@ -53,6 +112,11 @@ function SignupModal({ isOpen = true, onClose, onSwitchToLogin, onSuccess }) {
     // [유효성 검사 1] 빈 칸 확인
     if (!userId.trim()) {
       setErrorMessage("아이디를 입력해 주세요.");
+      return;
+    }
+    // [유효성 검사 2] 아이디 중복 확인 여부
+    if (!isIdChecked) {
+      setErrorMessage("아이디 중복 확인을 진행해 주세요.");
       return;
     }
     if (!password) {
@@ -68,7 +132,7 @@ function SignupModal({ isOpen = true, onClose, onSwitchToLogin, onSuccess }) {
       return;
     }
 
-    // [유효성 검사 2] 필수 약관 동의 여부 (백엔드에서도 체크함)
+    // [유효성 검사 3] 필수 약관 동의 여부 (백엔드에서도 체크함)
     if (!serviceAgreed || !privacyAgreed) {
       setErrorMessage("필수 약관에 모두 동의해야 가입할 수 있습니다.");
       return;
@@ -125,7 +189,7 @@ function SignupModal({ isOpen = true, onClose, onSwitchToLogin, onSuccess }) {
   };
 
   // ---------------------------------------------------------------------------
-  // 5. 화면 렌더링 
+  // 6. 화면 렌더링 
   // ---------------------------------------------------------------------------
   return (
     <Modal onClose={onClose}>
@@ -147,17 +211,44 @@ function SignupModal({ isOpen = true, onClose, onSwitchToLogin, onSuccess }) {
 
         {/* 회원가입 폼 */}
         <form onSubmit={handleSignup}>
-          {/* 아이디 입력칸 */}
+          {/* 아이디 입력칸 및 중복 확인 버튼 */}
           <div>
             <p>아이디</p>
-            <input
-              type="text"
-              placeholder="영문, 숫자 조합"
-              value={userId}
-              onChange={(e) => setUserId(e.target.value)}
-              disabled={loading}
-              autoComplete="username"
-            />
+            <div>
+              <input
+                type="text"
+                placeholder="영문, 숫자 조합 (2자 이상)"
+                value={userId}
+                onChange={(e) => {
+                  setUserId(e.target.value);
+                  // 아이디를 변경하면 중복 확인 통과 상태 초기화
+                  setIsIdChecked(false);
+                  setIsIdAvailable(null);
+                  setIdCheckMessage("");
+                }}
+                disabled={loading || idChecking}
+                autoComplete="username"
+              />
+              <button
+                type="button"
+                onClick={handleCheckId}
+                disabled={loading || idChecking || !userId.trim()}
+              >
+                {idChecking ? "확인 중…" : "중복 확인"}
+              </button>
+            </div>
+            {/* 아이디 중복 확인 결과 피드백 문구 */}
+            {idCheckMessage && (
+              <p
+                style={{
+                  color: "#000000",
+                  fontSize: "0.875rem",
+                  marginTop: "4px",
+                }}
+              >
+                {idCheckMessage}
+              </p>
+            )}
           </div>
 
           {/* 비밀번호 입력칸 */}
