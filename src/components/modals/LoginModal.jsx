@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router";
 import Modal from "./Modal";
 
 // ---------------------------------------------------------------------------
@@ -8,6 +9,7 @@ import Modal from "./Modal";
 const API_URL = import.meta.env.VITE_API_URL || "http://192.168.1.13:8000";
 
 function LoginModal({ isOpen = true, onClose, onSuccess, onSwitchToSignup }) {
+  const navigate = useNavigate();
   // ---------------------------------------------------------------------------
   // 2. 입력값 및 상태 관리
   // ---------------------------------------------------------------------------
@@ -92,13 +94,19 @@ function LoginModal({ isOpen = true, onClose, onSuccess, onSwitchToSignup }) {
   };
 
   // ---------------------------------------------------------------------------
-  // 4. 화면 렌더
+  // 4. 화면 렌더링
   // ---------------------------------------------------------------------------
   return (
     <Modal onClose={onClose}>
       <div>
-        {/* 상단 뒤로가기 버튼*/}
-        <button type="button" onClick={onClose}>
+        {/* 모달을 닫고 홈('/') 화면으로 이동 */}
+        <button
+          type="button"
+          onClick={() => {
+            if (onClose) onClose();
+            navigate("/");
+          }}
+        >
           ← 홈으로
         </button>
 
