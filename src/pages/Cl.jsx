@@ -5,11 +5,11 @@ import { useState } from "react";
 // ---------------------------------------------------------------------------
 
 // 서버(FastAPI) 주소. 배포하면 주소가 바뀌어서 한곳에 모아 둔다.
-const API_URL = "http://192.168.1.13:8000";
-// 비회원 맛보기 글자 수 한도 (공백 제외)
+const API_URL = "http://127.0.0.1:8000";
+// 비회원 맛보기 글자 수 한도 (공백 포함)
 // 서버(routes/cl.py)의 GUEST_MAX_TOTAL_CHARS, MEMBER_MAX_TOTAL_CHARS도 같이 바꿀 것
 const GUEST_LIMIT = 500;
-// 회원 글자 수 한도 (공백 제외)
+// 회원 글자 수 한도 (공백 포함)
 const MEMBER_LIMIT = 7000;
 // /\s/g : 공백을 전부 찾는 규칙, replace(..., "") : 찾은 공백을 지움
 const count = (text) => text.replace(/\s/g, "").length;
@@ -19,18 +19,23 @@ function Cl() {
   // 자소서 입력
   // ---------------------------------------------------------------------------
 
-  // 항목 4개에 입력한 글자 (처음엔 빈 글자 "")
   const [motivation, setMotivation] = useState("");
   const [growth, setGrowth] = useState("");
   const [personality, setPersonality] = useState("");
   const [plan, setPlan] = useState("");
 
-  // 회원인지 (TODO: auth.py이 생기면 실제 로그인 여부로 바꾸기)
-  const isMember = false;
+  // 저장된 토큰. LoginModal이 "access_token" 이름으로 저장함
+  const token = localStorage.getItem("access_token");
+
+  const isMember = token !== null;
+  const headers = { "Content-Type": "application/json" };
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
   // 이 사용자의 글자 수 한도 # 조건 ? 참일_때_값 : 거짓일_때_값
   const LIMIT = isMember ? MEMBER_LIMIT : GUEST_LIMIT;
 
-  const total = count(motivation + growth + personality + plan);
+  const total = (motivation + growth + personality + plan).length;
 
   const values = { motivation, growth, personality, plan };
   const setters = {
@@ -41,11 +46,13 @@ function Cl() {
   };
 
   // 이 칸(key)의 글을 next로 바꿔도 한도(LIMIT) 안인지
-  // 전체 − 그 칸의 예전 글자 수 + 새 글자 수 ≤ 500
+  // 전체 − 그 칸의 예전 글자 수 + 새 글자 수 ≤ LIMIT
+  // 또는 글자 수가 줄어드는 변경(지우기)이면 한도를 넘은 상태여도 허용
   const inLimit = (key, next) =>
-    total - count(values[key]) + count(next) <= LIMIT;
+    total - values[key].length + next.length <= LIMIT ||
+    next.length <= values[key].length;
 
-  // 입력칸에 글을 쓸 때: 500자 안이면 반영, 넘으면 무시 → 입력이 막힘
+  // 입력칸에 글을 쓸 때: 한도(LIMIT) 안이면 반영, 넘으면 무시 → 입력이 막힘
   const change = (key, next) => {
     if (inLimit(key, next)) {
       setters[key](next);
@@ -68,17 +75,19 @@ function Cl() {
     try {
       const res = await fetch(`${API_URL}/cl/title`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: headers,
         body: JSON.stringify({ motivation, growth, personality, plan }),
       });
       if (!res.ok) {
         setTitleError("제목을 불러오지 못했습니다.");
         return;
       }
-      const data = await res.json();    // 서버의 답을 읽기
-      setTitle(data.titles[0]);         // 제목 칸에 넣기 → 화면에 보임
+      const data = await res.json(); // 서버의 답을 읽기
+      setTitle(data.titles[0]); // 제목 칸에 넣기 → 화면에 보임
     } catch {
-      setTitleError("서버에 연결할 수 없습니다. 서버가 켜져 있는지 확인해 주세요.");
+      setTitleError(
+        "서버에 연결할 수 없습니다. 서버가 켜져 있는지 확인해 주세요.",
+      );
     } finally {
       setTitleLoading(false);
     }
@@ -104,16 +113,16 @@ function Cl() {
   // path: "/cl/feedback"(첨삭), "/cl/spellcheck"(맞춤법)
   // name: 패널 제목에 보여줄 이름
   const askCards = async (path, name) => {
-    setShowFeedback(true);  // 오른쪽 패널 열기
-    setPanelTitle(name);    // 패널 제목 정하기
-    setLoading(true);       // "기다리는 중" 켜기 → 버튼 꺼짐
-    setError("");           // 지난 오류 문구 지우기
-    setNotice("");          // 지난 안내 문구 지우기
-    setFeedbacks([]);       // 지난 카드 지우기
+    setShowFeedback(true); // 오른쪽 패널 열기
+    setPanelTitle(name); // 패널 제목 정하기
+    setLoading(true); // "기다리는 중" 켜기 → 버튼 꺼짐
+    setError(""); // 지난 오류 문구 지우기
+    setNotice(""); // 지난 안내 문구 지우기
+    setFeedbacks([]); // 지난 카드 지우기
     try {
       const res = await fetch(`${API_URL}${path}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: headers,
         body: JSON.stringify({
           motivation,
           growth,
@@ -126,37 +135,43 @@ function Cl() {
         setError("결과를 불러오지 못했습니다.");
         return;
       }
-      const data = await res.json();  // 서버의 답을 읽기
-      setFeedbacks(data.feedbacks);   // 카드 목록에 넣기 → 패널에 카드가 보임
-      if (data.warnings.length > 0) { // 빠진 결과가 있으면
+      const data = await res.json(); // 서버의 답을 읽기
+      setFeedbacks(data.feedbacks); // 카드 목록에 넣기 → 패널에 카드가 보임
+      if (data.warnings.length > 0) {
+        // 빠진 결과가 있으면
         setNotice("일부 결과는 기준을 통과하지 못해 제외했어요.");
       }
     } catch {
       setError("서버에 연결할 수 없습니다. 서버가 켜져 있는지 확인해 주세요.");
-    } finally {     // 성공이든 실패든 "기다리는 중" 끄기
+    } finally {
+      // 성공이든 실패든 "기다리는 중" 끄기
       setLoading(false);
     }
   };
 
   const ignore = (card) => {
-    setFeedbacks(feedbacks.filter((other) => other.sentence_id !== card.sentence_id));
+    setFeedbacks(
+      feedbacks.filter((other) => other.sentence_id !== card.sentence_id),
+    );
   };
 
   const apply = (card) => {
-    const current = values[card.section];       // ① 이 카드 칸의 지금 글
-    if (!current.includes(card.original)) {     // ② 원문이 아직 있나?
+    const current = values[card.section]; // ① 이 카드 칸의 지금 글
+    if (!current.includes(card.original)) {
+      // ② 원문이 아직 있나?
       setError("원문이 이미 바뀌어서 적용할 수 없습니다.");
       return;
     }
 
     const next = current.replace(card.original, card.suggestion); // ③ 원문 → 수정안으로 바꾼 글
-    if (!inLimit(card.section, next)) {                           // ④ 바꿔도 200자 안인가?
+    if (!inLimit(card.section, next)) {
+      // ④ 바꿔도 한도 안인가?
       setError(`적용하면 글자 수 한도(${LIMIT}자)를 넘어요.`);
       return;
     }
-    setters[card.section](next);          // ⑤ 그 칸에 반영
-    ignore(card);                         // ⑥ 다 쓴 카드는 지우기
-    setError("");                         // ⑦ 앞에 떴던 오류 문구 지우기
+    setters[card.section](next); // ⑤ 그 칸에 반영
+    ignore(card); // ⑥ 다 쓴 카드는 지우기
+    setError(""); // ⑦ 앞에 떴던 오류 문구 지우기
   };
 
   // ---------------------------------------------------------------------------
@@ -168,27 +183,32 @@ function Cl() {
   const [saveMessage, setSaveMessage] = useState("");
 
   // "마이페이지에 저장" 버튼: 제목과 자소서 4칸을 서버에 보내 저장한다
-  // auth.py이 생기면 로그인 정보도 같이 보내기
+
   const save = async () => {
-    setSaveMessage("");               // ① 지난 문구 지우기
-    setSaving(true);                  // ② "저장 중" 켜기 → 버튼 꺼짐
+    setSaveMessage(""); // ① 지난 문구 지우기
+    setSaving(true); // ② "저장 중" 켜기 → 버튼 꺼짐
     try {
-      const res = await fetch(`${API_URL}/cl/save`, {   // ③ /cl/save로
+      const res = await fetch(`${API_URL}/cl/save`, {
+        // ③ /cl/save로
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: headers,
         body: JSON.stringify({ title, motivation, growth, personality, plan }),
       });
       if (res.ok) {
-        setSaveMessage("마이페이지에 저장했어요.");     // ④ 성공
+        setSaveMessage("마이페이지에 저장했어요."); // ④ 성공
       } else if (res.status === 401) {
-        setSaveMessage("로그인 후 저장할 수 있어요.");   // ⑤ 로그인 안 함
+        setSaveMessage("로그인 후 저장할 수 있어요."); // ⑤ 로그인 안 함
       } else {
-        setSaveMessage("저장하지 못했습니다.");         // ⑥ 그 밖의 실패 (400, 500 등)
+        setSaveMessage("저장하지 못했습니다."); // ⑥ 그 밖의 실패 (400, 500 등)
       }
-    } catch {                                   // ⑦ 연결 실패 (서버 꺼짐, 와이파이 다름)
-      setSaveMessage("서버에 연결할 수 없습니다. 서버가 켜져 있는지 확인해 주세요.");
-    } finally {                                 // ⑧ 성공이든 실패든 마지막에
-      setSaving(false);                         //  "저장 중" 끄기 → 버튼 다시 켜짐
+    } catch {
+      // ⑦ 연결 실패 (서버 꺼짐, 와이파이 다름)
+      setSaveMessage(
+        "서버에 연결할 수 없습니다. 서버가 켜져 있는지 확인해 주세요.",
+      );
+    } finally {
+      // ⑧ 성공이든 실패든 마지막에
+      setSaving(false); //  "저장 중" 끄기 → 버튼 다시 켜짐
     }
   };
 
@@ -201,7 +221,10 @@ function Cl() {
       <div>
         <h1>자기소개서</h1>
         <span>
-          {isMember ? "글자 수" : "비회원 맛보기"} <strong>{total} / {LIMIT}자</strong>
+          {isMember ? "글자 수" : "비회원 맛보기"}{" "}
+          <strong>
+            {total} / {LIMIT}자
+          </strong>
         </span>
       </div>
       <section>
