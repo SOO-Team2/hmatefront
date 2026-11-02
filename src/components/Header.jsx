@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router";
 import LoginModal from "./modals/LoginModal";
 import SignupModal from "./modals/SignupModal";
@@ -8,6 +8,27 @@ function Header() {
   // 지금 띄워 둔 모달: null = 없음, "login" = 로그인, "signup" = 회원가입
   // (모달이 동시에 두 개 뜨는 일이 없어서 값 하나로 관리)
   const [modal, setModal] = useState(null);
+  // 로그인했는지: 저장된 토큰이 있으면 로그인 상태
+  const [loggedIn, setLoggedIn] = useState(
+    localStorage.getItem("access_token") !== null,
+  );
+
+  // LoginModal이 토큰을 저장하면 "authChange" 신호를 보냄 → 받아서 버튼을 바꿈
+  // (Home에서 로그인해도 헤더가 바로 바뀌게 하려고)
+  useEffect(() => {
+    const update = () =>
+      setLoggedIn(localStorage.getItem("access_token") !== null);
+    window.addEventListener("authChange", update);
+    return () => window.removeEventListener("authChange", update);
+  }, []);
+
+  // 로그아웃: 저장된 토큰을 지우면 끝 (JWT 방식, 서버 routes/auth.py logout 설명 참고)
+  // LoginModal이 저장한 "access_token", "user"를 둘 다 지운다
+  const logout = () => {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("user");
+    setLoggedIn(false);
+  };
 
   return (
     <header>
@@ -25,20 +46,39 @@ function Header() {
         <NavLink to="/mypage">마이페이지</NavLink>
       </nav>
 
+      {/* 로그인 상태면 로그아웃 버튼, 아니면 로그인/회원가입 버튼 */}
       {/* 버튼을 누르면 modal 값이 바뀌고, 아래에서 그 값에 맞는 모달을 그림 */}
-      <div>
-        <button type="button" onClick={() => setModal("login")}>
-          로그인
-        </button>
-        <button type="button" onClick={() => setModal("signup")}>
-          회원가입
-        </button>
-      </div>
+      {loggedIn ? (
+        <div>
+          <button type="button" onClick={logout}>
+            로그아웃
+          </button>
+        </div>
+      ) : (
+        <div>
+          <button type="button" onClick={() => setModal("login")}>
+            로그인
+          </button>
+          <button type="button" onClick={() => setModal("signup")}>
+            회원가입
+          </button>
+        </div>
+      )}
 
       {/* modal 값이 맞을 때만 모달을 화면에 올림 */}
-      {/* TODO: 모달 안의 닫기/로그인↔회원가입 전환은 모달이 값을 받게 만든 뒤에 연결 */}
-      {modal === "login" && <LoginModal />}
-      {modal === "signup" && <SignupModal />}
+      {modal === "login" && (
+        <LoginModal
+          onClose={() => setModal(null)}
+          onSwitchToSignup={() => setModal("signup")}
+        />
+      )}
+      {modal === "signup" && (
+        <SignupModal
+          onClose={() => setModal(null)}
+          onSwitch={() => setModal("login")}
+          onSwitchToLogin={() => setModal("login")}
+        />
+      )}
     </header>
   );
 }
