@@ -6,7 +6,7 @@ import Modal from "./Modal";
 // 1. 서버 설정
 // ---------------------------------------------------------------------------
 // FastAPI 백엔드 주소 (환경변수가 없으면 기본 로컬 서버 사용)
-const API_URL = import.meta.env.VITE_API_URL || "http://192.168.1.13:8000";
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
 function LoginModal({ isOpen = true, onClose, onSuccess, onSwitchToSignup }) {
   const navigate = useNavigate();
@@ -108,7 +108,7 @@ function LoginModal({ isOpen = true, onClose, onSuccess, onSwitchToSignup }) {
           }}
           className="text-sm text-gray-500 hover:text-gray-800 mb-4 inline-flex items-center gap-1 font-medium"
         >
-          ← 홈으로
+          ← 홈
         </button>
 
         {/* 타이틀 */}

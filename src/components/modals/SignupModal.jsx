@@ -5,7 +5,7 @@ import Modal from "./Modal";
 // 1. 서버 설정
 // ---------------------------------------------------------------------------
 // FastAPI 백엔드 주소 (환경변수가 없으면 기본 로컬 서버 사용)
-const API_URL = import.meta.env.VITE_API_URL || "http://192.168.1.13:8000";
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
 function SignupModal({ isOpen = true, onClose, onSwitchToLogin, onSwitch, onSuccess }) {
   // ---------------------------------------------------------------------------
@@ -198,7 +198,7 @@ function SignupModal({ isOpen = true, onClose, onSwitchToLogin, onSwitch, onSucc
           }}
           className="text-sm text-gray-500 hover:text-gray-800 mb-3 inline-flex items-center gap-1 font-medium"
         >
-          ← 로그인으로
+          ← 로그인
         </button>
 
         {/* 타이틀 및 안내 문구 */}
@@ -376,7 +376,7 @@ function SignupModal({ isOpen = true, onClose, onSwitchToLogin, onSwitch, onSucc
                   </label>
                 </div>
                 <p className="text-xs text-gray-500 mt-1 pl-6">
-                  자소서 · 이력서 · 면접 대화를 저장해 마이페이지에서 다시 볼 수 있어요.
+                  이력서 · 자기소개서 · 면접 대화를 저장해 마이페이지에서 다시 볼 수 있어요.
                 </p>
               </div>
             </div>

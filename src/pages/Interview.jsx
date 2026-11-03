@@ -1,5 +1,4 @@
 import { useState } from "react"
-import "./Interview.css"
 
 const CATEGORIES = ["지원 동기", "경험 및 역량", "인성 및 협업", "입사 후 포부"]
 
@@ -29,7 +28,7 @@ function Interview() {
     if (resumeFile) formData.append("resume", resumeFile)
     if (clFile) formData.append("cl", clFile)
 
-    const res = await fetch("http://127.0.0.1:8000/pdf", {
+    const res = await fetch("http://127.0.0.1:8000/question", {
       method: "POST",
       body: formData, //FormData는 headers 쓰면 안 됨
     })

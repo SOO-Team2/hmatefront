@@ -5,7 +5,7 @@ import { useState } from "react";
 // ---------------------------------------------------------------------------
 
 // 서버(FastAPI) 주소. 배포하면 주소가 바뀌어서 한곳에 모아 둔다.
-const API_URL = import.meta.env.VITE_API_URL || "http://192.168.1.13:8000";
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 // 비회원 맛보기 글자 수 한도
 // 서버(routes/cl.py)의 GUEST_MAX_TOTAL_CHARS, MEMBER_MAX_TOTAL_CHARS도 같이 바꿀 것
 const GUEST_LIMIT = 500;
