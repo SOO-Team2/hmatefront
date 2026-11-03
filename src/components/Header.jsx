@@ -31,39 +31,83 @@ function Header() {
   };
 
   return (
-    <header>
-      {/* a 태그 대신 Link: 클릭해도 페이지가 새로고침되지 않아서 입력 중인 글이 안 사라짐 */}
-      <Link to="/">
-        <img src="/logo.svg" alt="합격메이트" />
-        합격메이트
-      </Link>
+    <header className="sticky top-0 z-30 bg-white border-b border-gray-200">
+      <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+        {/* a 태그 대신 Link: 클릭해도 페이지가 새로고침되지 않아서 입력 중인 글이 안 사라짐 */}
+        <Link
+          to="/"
+          className="flex items-center gap-2.5 text-xl font-extrabold text-gray-900 tracking-tight"
+        >
+          <img src="/logo.svg" alt="합격메이트" className="w-8 h-8 rounded-lg" />
+          합격 메이트
+        </Link>
 
-      {/* NavLink: Link와 같지만, 지금 보고 있는 페이지의 메뉴에 "active" 이름표가 자동으로 붙음 */}
-      {/* to 주소는 App.jsx의 Route path와 글자까지 같아야 함 */}
-      <nav>
-        <NavLink to="/cl">자기소개서</NavLink>
-        <NavLink to="/interview">AI 면접</NavLink>
-        <NavLink to="/mypage">마이페이지</NavLink>
-      </nav>
+        {/* NavLink: Link와 같지만, 지금 보고 있는 페이지의 메뉴에 "active" 이름표가 자동으로 붙음 */}
+        {/* to 주소는 App.jsx의 Route path와 글자까지 같아야 함 */}
+        <nav className="flex items-center gap-1 sm:gap-2 mr-auto ml-6 sm:ml-10">
+          <NavLink
+            to="/cl"
+            className={({ isActive }) =>
+              isActive
+                ? "px-3.5 py-2 rounded-xl bg-brand-light text-brand font-bold text-sm transition-colors"
+                : "px-3.5 py-2 rounded-xl text-gray-700 hover:text-gray-900 hover:bg-gray-100 font-medium text-sm transition-colors"
+            }
+          >
+            자기소개서
+          </NavLink>
+          <NavLink
+            to="/interview"
+            className={({ isActive }) =>
+              isActive
+                ? "px-3.5 py-2 rounded-xl bg-brand-light text-brand font-bold text-sm transition-colors"
+                : "px-3.5 py-2 rounded-xl text-gray-700 hover:text-gray-900 hover:bg-gray-100 font-medium text-sm transition-colors"
+            }
+          >
+            AI 면접
+          </NavLink>
+          <NavLink
+            to="/mypage"
+            className={({ isActive }) =>
+              isActive
+                ? "px-3.5 py-2 rounded-xl bg-brand-light text-brand font-bold text-sm transition-colors"
+                : "px-3.5 py-2 rounded-xl text-gray-700 hover:text-gray-900 hover:bg-gray-100 font-medium text-sm transition-colors"
+            }
+          >
+            마이페이지
+          </NavLink>
+        </nav>
 
-      {/* 로그인 상태면 로그아웃 버튼, 아니면 로그인/회원가입 버튼 */}
-      {/* 버튼을 누르면 modal 값이 바뀌고, 아래에서 그 값에 맞는 모달을 그림 */}
-      {loggedIn ? (
-        <div>
-          <button type="button" onClick={logout}>
-            로그아웃
-          </button>
-        </div>
-      ) : (
-        <div>
-          <button type="button" onClick={() => setModal("login")}>
-            로그인
-          </button>
-          <button type="button" onClick={() => setModal("signup")}>
-            회원가입
-          </button>
-        </div>
-      )}
+        {/* 로그인 상태면 로그아웃 버튼, 아니면 로그인/회원가입 버튼 */}
+        {/* 버튼을 누르면 modal 값이 바뀌고, 아래에서 그 값에 맞는 모달을 그림 */}
+        {loggedIn ? (
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={logout}
+              className="px-4 py-2 rounded-xl border border-gray-300 bg-white text-sm font-semibold text-gray-800 hover:bg-gray-50 transition-colors"
+            >
+              로그아웃
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setModal("login")}
+              className="px-4 py-2 rounded-xl border border-gray-300 bg-white text-sm font-semibold text-gray-800 hover:bg-gray-50 transition-colors"
+            >
+              로그인
+            </button>
+            <button
+              type="button"
+              onClick={() => setModal("signup")}
+              className="px-4 py-2 rounded-xl bg-brand text-white text-sm font-semibold hover:bg-brand-hover transition-colors"
+            >
+              회원가입
+            </button>
+          </div>
+        )}
+      </div>
 
       {/* modal 값이 맞을 때만 모달을 화면에 올림 */}
       {modal === "login" && (
@@ -72,7 +116,13 @@ function Header() {
           onSwitchToSignup={() => setModal("signup")}
         />
       )}
-      {modal === "signup" && <SignupModal onSwitch={() => setModal("login")} />}
+      {modal === "signup" && (
+        <SignupModal
+          onClose={() => setModal(null)}
+          onSwitchToLogin={() => setModal("login")}
+          onSwitch={() => setModal("login")}
+        />
+      )}
     </header>
   );
 }

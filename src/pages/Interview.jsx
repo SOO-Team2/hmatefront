@@ -63,130 +63,273 @@ function Interview() {
   }
 
   return (
-    <div id="iv">
-      <header id="iv-head">
-        <h1>AI 면접</h1>
+    <div
+      id="iv"
+      className="max-w-6xl mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start"
+    >
+      <header id="iv-head" className="lg:col-span-12">
+        <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
+          AI 면접
+        </h1>
       </header>
 
-      <div id="iv-setup">
-        <div className="field">
-          <label>직무</label>
-          <div className="row">
-            <select>
-              <option>AI·개발·데이터</option>
-            </select>
-            <select>
-              <option>백엔드개발자</option>
-              <option>프론트엔드개발자</option>
-              <option>웹개발자</option>
-            </select>
+      <div
+        id="iv-setup"
+        className="lg:col-span-12 rounded-2xl border border-gray-200 bg-white p-6 shadow-2xs space-y-5"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+          <div className="field md:col-span-5">
+            <label className="block text-xs font-bold text-gray-700 mb-2">
+              직무
+            </label>
+            <div className="row grid grid-cols-2 gap-2.5">
+              <select className="w-full rounded-xl border border-gray-300 bg-white px-3.5 py-2.5 text-sm text-gray-900 focus:border-brand focus:outline-none">
+                <option>AI·개발·데이터</option>
+              </select>
+              <select className="w-full rounded-xl border border-gray-300 bg-white px-3.5 py-2.5 text-sm text-gray-900 focus:border-brand focus:outline-none">
+                <option>백엔드개발자</option>
+                <option>프론트엔드개발자</option>
+                <option>웹개발자</option>
+              </select>
+            </div>
           </div>
-        </div>
 
-        <div className="field">
-          <label>이력서</label>
-          <div className="row">
-            {resumeFile ? (
-              <span>{resumeFile.name}</span>
-            ) : (
-              <button type="button" onClick={(e) => e.currentTarget.nextElementSibling.click()}> {/* 현재 누른 버튼의 다음 태그 클릭 */}
-                PDF 업로드
+          <div className="field md:col-span-3">
+            <label className="block text-xs font-bold text-gray-700 mb-2">
+              이력서
+            </label>
+            <div className="row flex items-center gap-2">
+              {resumeFile ? (
+                <span className="truncate rounded-xl border border-brand-border bg-brand-light px-3 py-2.5 text-xs font-semibold text-brand">
+                  {resumeFile.name}
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={(e) => e.currentTarget.nextElementSibling.click()}
+                  className="rounded-xl border border-gray-300 bg-white px-3.5 py-2.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  {/* 현재 누른 버튼의 다음 태그 클릭 */}
+                  PDF 업로드
+                </button>
+              )}
+              <input
+                type="file"
+                accept=".pdf"
+                hidden
+                onChange={(e) => pdfSelect(e, "resume")}
+              />
+              <button
+                type="button"
+                className="rounded-xl border border-brand bg-white px-3.5 py-2.5 text-xs font-bold text-brand hover:bg-brand-soft transition-colors"
+              >
+                내 이력서 가져오기
               </button>
-            )}
-            <input type="file" accept=".pdf" hidden onChange={(e) => pdfSelect(e, "resume")} />
-            <button type="button">
-              내 이력서 가져오기
+            </div>
+          </div>
+
+          <div className="field md:col-span-3">
+            <label className="block text-xs font-bold text-gray-700 mb-2">
+              자기소개서
+            </label>
+            <div className="row flex items-center gap-2">
+              {clFile ? (
+                <span className="truncate rounded-xl border border-brand-border bg-brand-light px-3 py-2.5 text-xs font-semibold text-brand">
+                  {clFile.name}
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={(e) => e.currentTarget.nextElementSibling.click()}
+                  className="rounded-xl border border-gray-300 bg-white px-3.5 py-2.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  PDF 업로드
+                </button>
+              )}
+              <input
+                type="file"
+                accept=".pdf"
+                hidden
+                onChange={(e) => pdfSelect(e, "cl")}
+              />
+              <button
+                type="button"
+                className="rounded-xl border border-brand bg-white px-3.5 py-2.5 text-xs font-bold text-brand hover:bg-brand-soft transition-colors"
+              >
+                내 자기소개서 가져오기
+              </button>
+            </div>
+          </div>
+
+          <div className="md:col-span-1 flex md:justify-end">
+            <button
+              type="button"
+              className="btn-main w-full md:w-auto whitespace-nowrap rounded-xl bg-brand px-4 py-2.5 text-xs font-bold text-white hover:bg-brand-hover transition-colors"
+              onClick={askQuestion}
+            >
+              질문 생성
             </button>
           </div>
         </div>
 
-        <div className="field">
-          <label>자기소개서</label>
-          <div className="row">
-            {clFile ? (
-              <span>{clFile.name}</span>
-            ) : (
-              <button type="button" onClick={(e) => e.currentTarget.nextElementSibling.click()}>
-                PDF 업로드
-              </button>
-            )}
-            <input type="file" accept=".pdf" hidden onChange={(e) => pdfSelect(e, "cl")} />
-            <button type="button">
-              내 자기소개서 가져오기
-            </button>
-          </div>
-        </div>
-
-        <button type="button" className="btn-main" onClick={askQuestion}>질문 생성</button>
-
-        <div className="field">
-          <label>질문 항목</label>
-          <div className="q-list">
-            <div className="q-item">
-              <span>① 지원 동기</span>
-              <p>{messages[1] ? "완료" : "미입력"}</p>
+        <div className="field pt-1">
+          <label className="block text-xs font-bold text-gray-700 mb-2.5">
+            질문 항목
+          </label>
+          <div className="q-list grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div
+              className={`q-item rounded-xl border p-4 ${
+                messages[1]
+                  ? "border-brand-border bg-white"
+                  : "border-dashed border-gray-300 bg-white"
+              }`}
+            >
+              <span className="block text-sm font-extrabold text-gray-900">
+                ① 지원 동기
+              </span>
+              <p
+                className={`text-xs mt-1 font-bold ${
+                  messages[1] ? "text-brand" : "text-gray-400 font-medium"
+                }`}
+              >
+                {messages[1] ? "완료" : "미입력"}
+              </p>
             </div>
-            <div className="q-item">
-              <span>② 경험 및 역량</span>
-              <p>{messages[3] ? "완료" : "미입력"}</p>
+            <div
+              className={`q-item rounded-xl border p-4 ${
+                messages[3]
+                  ? "border-brand-border bg-white"
+                  : "border-dashed border-gray-300 bg-white"
+              }`}
+            >
+              <span className="block text-sm font-extrabold text-gray-900">
+                ② 경험 및 역량
+              </span>
+              <p
+                className={`text-xs mt-1 font-bold ${
+                  messages[3] ? "text-brand" : "text-gray-400 font-medium"
+                }`}
+              >
+                {messages[3] ? "완료" : "미입력"}
+              </p>
             </div>
-            <div className="q-item">
-              <span>③ 인성 및 협업</span>
-              <p>{messages[5] ? "완료" : "미입력"}</p>
+            <div
+              className={`q-item rounded-xl border p-4 ${
+                messages[5]
+                  ? "border-brand-border bg-white"
+                  : "border-dashed border-gray-300 bg-white"
+              }`}
+            >
+              <span className="block text-sm font-extrabold text-gray-900">
+                ③ 인성 및 협업
+              </span>
+              <p
+                className={`text-xs mt-1 font-bold ${
+                  messages[5] ? "text-brand" : "text-gray-400 font-medium"
+                }`}
+              >
+                {messages[5] ? "완료" : "미입력"}
+              </p>
             </div>
-            <div className="q-item">
-              <span>④ 입사 후 포부</span>
-              <p>{messages[7] ? "완료" : "미입력"}</p>
+            <div
+              className={`q-item rounded-xl border p-4 ${
+                messages[7]
+                  ? "border-brand-border bg-white"
+                  : "border-dashed border-gray-300 bg-white"
+              }`}
+            >
+              <span className="block text-sm font-extrabold text-gray-900">
+                ④ 입사 후 포부
+              </span>
+              <p
+                className={`text-xs mt-1 font-bold ${
+                  messages[7] ? "text-brand" : "text-gray-400 font-medium"
+                }`}
+              >
+                {messages[7] ? "완료" : "미입력"}
+              </p>
             </div>
           </div>
         </div>
       </div>
 
-      <div id="iv-ev">
-        <h3>근거 문장</h3>
+      <div
+        id="iv-ev"
+        className="lg:col-span-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-2xs space-y-5"
+      >
+        <h3 className="text-lg font-extrabold text-gray-900">근거 문장</h3>
+        {evidences.length === 0 && (
+          <p className="text-xs text-gray-400 py-6 text-center">
+            질문을 생성하면 근거 문장이 표시됩니다.
+          </p>
+        )}
         {evidences[0]?.length > 0 && (
-          <div className="ev-group">
-            <p>① 지원 동기</p>
-            <div className="q-list">
+          <div className="ev-group space-y-2">
+            <p className="text-xs font-bold text-gray-500">① 지원 동기</p>
+            <div className="q-list space-y-2">
               {evidences[0].map((ev, i) => (
-                <div key={i} className="ev-item">
-                  <span>[1-{i + 1}]</span> {ev}
+                <div
+                  key={i}
+                  className="ev-item rounded-xl border border-brand-border bg-brand-soft p-3 text-xs text-gray-800 leading-relaxed"
+                >
+                  <span className="font-extrabold text-brand mr-1.5">
+                    [1-{i + 1}]
+                  </span>{" "}
+                  {ev}
                 </div>
               ))}
             </div>
           </div>
         )}
         {evidences[1]?.length > 0 && (
-          <div className="ev-group">
-            <p>② 경험 및 역량</p>
-            <div className="q-list">
+          <div className="ev-group space-y-2">
+            <p className="text-xs font-bold text-gray-500">② 경험 및 역량</p>
+            <div className="q-list space-y-2">
               {evidences[1].map((ev, i) => (
-                <div key={i} className="ev-item">
-                  <span>[2-{i + 1}]</span> {ev}
+                <div
+                  key={i}
+                  className="ev-item rounded-xl border border-brand-border bg-brand-soft p-3 text-xs text-gray-800 leading-relaxed"
+                >
+                  <span className="font-extrabold text-brand mr-1.5">
+                    [2-{i + 1}]
+                  </span>{" "}
+                  {ev}
                 </div>
               ))}
             </div>
           </div>
         )}
         {evidences[2]?.length > 0 && (
-          <div className="ev-group">
-            <p>③ 인성 및 협업</p>
-            <div className="q-list">
+          <div className="ev-group space-y-2">
+            <p className="text-xs font-bold text-gray-500">③ 인성 및 협업</p>
+            <div className="q-list space-y-2">
               {evidences[2].map((ev, i) => (
-                <div key={i} className="ev-item">
-                  <span>[3-{i + 1}]</span> {ev}
+                <div
+                  key={i}
+                  className="ev-item rounded-xl border border-brand-border bg-brand-soft p-3 text-xs text-gray-800 leading-relaxed"
+                >
+                  <span className="font-extrabold text-brand mr-1.5">
+                    [3-{i + 1}]
+                  </span>{" "}
+                  {ev}
                 </div>
               ))}
             </div>
           </div>
         )}
         {evidences[3]?.length > 0 && (
-          <div className="ev-group">
-            <p>④ 입사 후 포부</p>
-            <div className="q-list">
+          <div className="ev-group space-y-2">
+            <p className="text-xs font-bold text-gray-500">④ 입사 후 포부</p>
+            <div className="q-list space-y-2">
               {evidences[3].map((ev, i) => (
-                <div key={i} className="ev-item">
-                  <span>[4-{i + 1}]</span> {ev}
+                <div
+                  key={i}
+                  className="ev-item rounded-xl border border-brand-border bg-brand-soft p-3 text-xs text-gray-800 leading-relaxed"
+                >
+                  <span className="font-extrabold text-brand mr-1.5">
+                    [4-{i + 1}]
+                  </span>{" "}
+                  {ev}
                 </div>
               ))}
             </div>
@@ -194,40 +337,81 @@ function Interview() {
         )}
       </div>
 
-      <div id="iv-chat">
-        <div id="chat-head">
-          <h3>{catMajor} &gt; {catMinor}</h3>
-          <button type="button">대화 저장</button>
+      <div
+        id="iv-chat"
+        className="lg:col-span-8 rounded-2xl border border-gray-200 bg-white shadow-2xs flex flex-col overflow-hidden"
+      >
+        <div
+          id="chat-head"
+          className="flex items-center justify-between px-6 py-4 border-b border-gray-200"
+        >
+          <h3 className="text-base font-extrabold text-gray-900">
+            {catMajor || "AI·개발·데이터"} &gt; {catMinor || "백엔드개발자"}
+          </h3>
+          <button
+            type="button"
+            className="rounded-xl border border-brand bg-white px-4 py-2 text-xs font-bold text-brand hover:bg-brand-soft transition-colors"
+          >
+            대화 저장
+          </button>
         </div>
-        <div id="chat-list">
+        <div id="chat-list" className="p-6 space-y-4 min-h-[360px]">
           {messages.map((msg, i) =>
             msg.type === "question" ? (
-              <div key={i} className="msg-q">
-                <span>{msg.category}</span>
+              <div
+                key={i}
+                className="msg-q max-w-[85%] rounded-2xl border border-gray-200 bg-white p-4 shadow-2xs space-y-2"
+              >
+                <span className="inline-block rounded-md bg-brand px-2.5 py-0.5 text-xs font-bold text-white mr-1.5">
+                  {msg.category}
+                </span>
                 {evidences[CATEGORIES.indexOf(msg.category)]?.length > 0 && (
-                  <span>근거 [{CATEGORIES.indexOf(msg.category) + 1}-1]</span>
+                  <span className="inline-block rounded-md bg-brand-light px-2.5 py-0.5 text-xs font-bold text-brand">
+                    근거 [{CATEGORIES.indexOf(msg.category) + 1}-1]
+                  </span>
                 )}
-                <div>{msg.text}</div>
+                <div className="text-sm text-gray-900 leading-relaxed pt-1">
+                  {msg.text}
+                </div>
               </div>
             ) : (
-              <div key={i} className="msg-a">{msg.text}</div>
+              <div
+                key={i}
+                className="msg-a ml-auto max-w-[80%] rounded-2xl bg-brand px-5 py-3.5 text-sm text-white leading-relaxed shadow-2xs"
+              >
+                {msg.text}
+              </div>
             )
           )}
-          <div id="warn-box">
-            <div>
+          <div
+            id="warn-box"
+            className="rounded-2xl border border-warn-border bg-warn-bg p-4 space-y-1 text-warn-text"
+          >
+            <div className="flex items-center gap-2">
               <span>⚠️</span>
-              <h4>서류와 다른 부분이 있어요</h4>
+              <h4 className="text-sm font-extrabold">
+                서류와 다른 부분이 있어요
+              </h4>
             </div>
-            <p>
-              자기소개서 <span>팀원 4명</span> · 답변 <span>팀원 6명</span>
+            <p className="text-xs pl-6">
+              자기소개서 <span className="font-extrabold">팀원 4명</span> · 답변{" "}
+              <span className="font-extrabold">팀원 6명</span>
             </p>
           </div>
         </div>
-        <div id="chat-input">
+        <div
+          id="chat-input"
+          className="border-t border-gray-200 p-4 flex items-end gap-3 bg-white"
+        >
           <textarea
             placeholder="답변을 입력하세요"
+            className="flex-1 min-h-[84px] rounded-xl border border-gray-300 p-3.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15 resize-none"
           ></textarea>
-          <button type="button" className="btn-main" onClick={submitAnswer}>
+          <button
+            type="button"
+            className="btn-main shrink-0 rounded-xl bg-brand px-5 py-3 text-sm font-bold text-white hover:bg-brand-hover transition-colors"
+            onClick={submitAnswer}
+          >
             전송
           </button>
         </div>

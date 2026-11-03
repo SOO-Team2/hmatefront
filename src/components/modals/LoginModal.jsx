@@ -106,18 +106,21 @@ function LoginModal({ isOpen = true, onClose, onSuccess, onSwitchToSignup }) {
             if (onClose) onClose();
             navigate("/");
           }}
+          className="text-sm text-gray-500 hover:text-gray-800 mb-4 inline-flex items-center gap-1 font-medium"
         >
           ← 홈으로
         </button>
 
         {/* 타이틀 */}
-        <h2>로그인</h2>
+        <h2 className="text-3xl font-extrabold text-gray-900 mb-7 tracking-tight">
+          로그인
+        </h2>
 
         {/* 로그인 입력 폼 */}
-        <form onSubmit={handleLogin}>
+        <form onSubmit={handleLogin} className="space-y-5">
           {/* 아이디 입력칸 */}
           <div>
-            <p>아이디</p>
+            <p className="text-sm font-bold text-gray-800 mb-2">아이디</p>
             <input
               type="text"
               placeholder="아이디를 입력하세요"
@@ -125,12 +128,13 @@ function LoginModal({ isOpen = true, onClose, onSuccess, onSwitchToSignup }) {
               onChange={(e) => setUserId(e.target.value)}
               disabled={loading}
               autoComplete="username"
+              className="w-full rounded-xl border border-gray-300 px-4 py-3.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15 disabled:bg-gray-50"
             />
           </div>
 
           {/* 비밀번호 입력칸 */}
           <div>
-            <p>비밀번호</p>
+            <p className="text-sm font-bold text-gray-800 mb-2">비밀번호</p>
             <input
               type="password"
               placeholder="비밀번호를 입력하세요"
@@ -138,27 +142,42 @@ function LoginModal({ isOpen = true, onClose, onSuccess, onSwitchToSignup }) {
               onChange={(e) => setPassword(e.target.value)}
               disabled={loading}
               autoComplete="current-password"
+              className="w-full rounded-xl border border-gray-300 px-4 py-3.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15 disabled:bg-gray-50"
             />
           </div>
 
           {/* 에러 메시지 (오류 발생 시에만 표시) */}
-          {errorMessage && <p>{errorMessage}</p>}
+          {errorMessage && (
+            <p className="text-xs font-medium text-danger bg-danger-bg border border-danger-border rounded-lg px-3 py-2">
+              {errorMessage}
+            </p>
+          )}
 
           {/* 로그인 버튼: 요청 중일 때는 비활성화 */}
-          <button type="submit" disabled={loading}>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-xl bg-brand py-3.5 text-base font-bold text-white hover:bg-brand-hover transition-colors disabled:opacity-50 mt-2"
+          >
             {loading ? "로그인 중…" : "로그인"}
           </button>
         </form>
 
         {/* 아이디 찾기 | 비밀번호 찾기 */}
-        <div>
-          <button type="button">아이디 찾기</button>
-          <span>|</span>
-          <button type="button">비밀번호 찾기</button>
+        <div className="flex items-center justify-center gap-3 text-sm text-gray-500 my-5">
+          <button type="button" className="hover:text-gray-800">
+            아이디 찾기
+          </button>
+          <span className="text-gray-300">|</span>
+          <button type="button" className="hover:text-gray-800">
+            비밀번호 찾기
+          </button>
         </div>
 
-        <div>
-          <span>아직 회원이 아니신가요?</span>
+        <div className="relative flex items-center justify-center my-5 before:content-[''] before:flex-1 before:border-t before:border-gray-200 after:content-[''] after:flex-1 after:border-t after:border-gray-200">
+          <span className="px-3 text-xs text-gray-400">
+            아직 회원이 아니신가요?
+          </span>
         </div>
 
         {/* 회원가입 버튼 클릭 시 회원가입 모달로 전환 */}
@@ -168,6 +187,7 @@ function LoginModal({ isOpen = true, onClose, onSuccess, onSwitchToSignup }) {
             if (onClose) onClose();
             if (onSwitchToSignup) onSwitchToSignup();
           }}
+          className="w-full rounded-xl border border-brand bg-white py-3.5 text-base font-bold text-brand hover:bg-brand-soft transition-colors"
         >
           회원가입
         </button>

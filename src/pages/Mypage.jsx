@@ -284,101 +284,186 @@ function Mypage() {
   // 로그인 안 했으면 마이페이지 대신 안내만
   if (!token) {
     return (
-      <main>
-        <p>로그인 후 이용할 수 있어요.</p>
+      <main className="max-w-6xl mx-auto px-6 py-16">
+        <div className="rounded-2xl border border-gray-200 bg-white p-12 text-center shadow-2xs">
+          <p className="text-base font-bold text-gray-700">
+            로그인 후 이용할 수 있어요.
+          </p>
+        </div>
       </main>
     );
   }
 
   return (
-    <div>
+    <div className="max-w-6xl mx-auto px-6 py-10 grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
       {/* 1. 좌측 사이드바 (프로필 및 탭 메뉴) */}
-      <aside>
-        <div>
-          <h2>{user?.id}님</h2>
+      <aside className="md:col-span-3 rounded-2xl border border-gray-200 bg-white p-5 shadow-2xs">
+        <div className="pb-4 mb-3 border-b border-gray-100 px-2">
+          <h2 className="text-lg font-extrabold text-gray-900">
+            {user?.id}님
+          </h2>
         </div>
 
-        <nav>
-          <button type="button" onClick={() => setActiveTab("resume")}>
-            이력서
-          </button>
-          <button type="button" onClick={() => setActiveTab("cl")}>
+        <nav className="flex flex-col gap-1">
+          <button
+            type="button"
+            onClick={() => setActiveTab("cl")}
+            className={`w-full text-left px-4 py-2.5 rounded-xl text-sm transition-colors ${
+              activeTab === "cl"
+                ? "bg-brand-light text-brand font-bold"
+                : "text-gray-700 hover:bg-gray-100 font-medium"
+            }`}
+          >
             자기소개서
           </button>
-          <button type="button" onClick={() => setActiveTab("history")}>
+          <button
+            type="button"
+            onClick={() => setActiveTab("resume")}
+            className={`w-full text-left px-4 py-2.5 rounded-xl text-sm transition-colors ${
+              activeTab === "resume"
+                ? "bg-brand-light text-brand font-bold"
+                : "text-gray-700 hover:bg-gray-100 font-medium"
+            }`}
+          >
+            이력서
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("history")}
+            className={`w-full text-left px-4 py-2.5 rounded-xl text-sm transition-colors ${
+              activeTab === "history"
+                ? "bg-brand-light text-brand font-bold"
+                : "text-gray-700 hover:bg-gray-100 font-medium"
+            }`}
+          >
             면접 기록
           </button>
-          <button type="button" onClick={() => setActiveTab("profile")}>
+          <button
+            type="button"
+            onClick={() => setActiveTab("profile")}
+            className={`w-full text-left px-4 py-2.5 rounded-xl text-sm transition-colors ${
+              activeTab === "profile"
+                ? "bg-brand-light text-brand font-bold"
+                : "text-gray-700 hover:bg-gray-100 font-medium"
+            }`}
+          >
             회원정보 수정
           </button>
         </nav>
       </aside>
 
       {/* 2. 우측 콘텐츠 영역 */}
-      <main>
+      <main className="md:col-span-9 rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-2xs">
         {/* 자기소개서 탭*/}
         {activeTab === "cl" && (
-          <section>
-            <div>
-              <h2>자기소개서</h2>
+          <section className="space-y-5">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-extrabold text-gray-900 tracking-tight">
+                자기소개서
+              </h2>
               <Link to="/cl">
-                <button type="button">새 자기소개서 작성 →</button>
+                <button
+                  type="button"
+                  className="text-sm font-bold text-brand hover:underline"
+                >
+                  새 자기소개서 작성 →
+                </button>
               </Link>
             </div>
-            {cls.length === 0 && <p>저장한 자기소개서가 없어요.</p>}
+            {cls.length === 0 && (
+              <p className="text-sm text-gray-500 py-10 text-center">
+                저장한 자기소개서가 없어요.
+              </p>
+            )}
 
             {cls.map((cl) =>
               editingId === cl.cl_id ? (
                 /* 수정 중인 카드: 입력칸 */
-                <div key={cl.cl_id}>
+                <div
+                  key={cl.cl_id}
+                  className="rounded-2xl border border-brand-border bg-white p-6 space-y-4"
+                >
                   <input
                     type="text"
                     value={editForm.title}
                     onChange={(e) =>
                       setEditForm({ ...editForm, title: e.target.value })
                     }
+                    className="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-bold text-gray-900 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15"
                   />
                   {SECTIONS.map(([key, label]) => (
-                    <div key={key}>
-                      <h4>{label}</h4>
+                    <div key={key} className="space-y-1.5">
+                      <h4 className="text-xs font-extrabold text-gray-800">
+                        {label}
+                      </h4>
                       <textarea
                         value={editForm[key]}
                         onChange={(e) =>
                           setEditForm({ ...editForm, [key]: e.target.value })
                         }
+                        className="w-full min-h-[110px] rounded-xl border border-gray-200 p-3.5 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15 resize-y"
                       />
                     </div>
                   ))}
-                  <button type="button" onClick={saveEdit}>
-                    저장
-                  </button>
-                  <button type="button" onClick={() => setEditingId(null)}>
-                    취소
-                  </button>
+                  <div className="flex items-center gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={saveEdit}
+                      className="rounded-xl bg-brand px-4 py-2 text-xs font-bold text-white hover:bg-brand-hover transition-colors"
+                    >
+                      저장
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditingId(null)}
+                      className="rounded-xl border border-gray-300 bg-white px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      취소
+                    </button>
+                  </div>
                 </div>
               ) : (
                 /* 보통 카드: 보기 */
-                <div key={cl.cl_id}>
-                  <div>
-                    <h3>{cl.title}</h3>
-                    <button type="button" onClick={() => startEdit(cl)}>
+                <div
+                  key={cl.cl_id}
+                  className="rounded-2xl border border-gray-200 bg-white overflow-hidden"
+                >
+                  <div className="flex items-center justify-between gap-2 px-6 py-4 border-b border-gray-100">
+                    <h3 className="text-base font-extrabold text-gray-900 mr-auto">
+                      {cl.title}
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => startEdit(cl)}
+                      className="rounded-lg border border-brand bg-white px-3 py-1.5 text-xs font-bold text-brand hover:bg-brand-soft transition-colors"
+                    >
                       수정
                     </button>
-                    <button type="button" onClick={() => deleteCl(cl.cl_id)}>
+                    <button
+                      type="button"
+                      onClick={() => deleteCl(cl.cl_id)}
+                      className="rounded-lg border border-danger-border bg-white px-3 py-1.5 text-xs font-semibold text-danger hover:bg-danger-bg transition-colors"
+                    >
                       삭제
                     </button>
                   </div>
 
                   {/* 4칸 중 내용이 있는 칸만 보여준다 */}
-                  {SECTIONS.map(
-                    ([key, label]) =>
-                      cl[key] && (
-                        <div key={key}>
-                          <h4>{label}</h4>
-                          <p>{cl[key]}</p>
-                        </div>
-                      ),
-                  )}
+                  <div className="p-6 space-y-4">
+                    {SECTIONS.map(
+                      ([key, label]) =>
+                        cl[key] && (
+                          <div key={key} className="space-y-1">
+                            <h4 className="text-xs font-extrabold text-gray-900">
+                              {label}
+                            </h4>
+                            <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                              {cl[key]}
+                            </p>
+                          </div>
+                        ),
+                    )}
+                  </div>
                 </div>
               ),
             )}
@@ -387,33 +472,46 @@ function Mypage() {
 
         {/* 이력서 탭*/}
         {activeTab === "resume" && (
-          <section>
-            <h2>이력서</h2>
+          <section className="space-y-5">
+            <h2 className="text-2xl font-extrabold text-gray-900 tracking-tight">
+              이력서
+            </h2>
 
             {/* 이름, 학교, 전공, 보유 기술 */}
             {RESUME_FIELDS.map(([key, label, max]) => (
               <div key={key}>
-                <p>{label}</p>
+                <p className="text-xs font-bold text-gray-800 mb-1.5">
+                  {label}
+                </p>
                 <input
                   type="text"
                   maxLength={max}
                   value={resume[key] ?? ""}
                   onChange={(e) => changeResume(key, e.target.value)}
+                  className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15"
                 />
               </div>
             ))}
 
             {/* 자격증 (여러 개) */}
-            <div>
-              <p>자격증</p>
-              <button
-                type="button"
-                onClick={() => addItem("certificates", { cert: "", org: "" })}
-              >
-                + 추가
-              </button>
+            <div className="rounded-2xl border border-gray-200 p-5 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-extrabold text-gray-900">자격증</p>
+                <button
+                  type="button"
+                  onClick={() =>
+                    addItem("certificates", { cert: "", org: "" })
+                  }
+                  className="rounded-lg border border-brand bg-white px-3 py-1 text-xs font-bold text-brand hover:bg-brand-soft transition-colors"
+                >
+                  + 추가
+                </button>
+              </div>
               {resume.certificates.map((item, i) => (
-                <div key={i}>
+                <div
+                  key={i}
+                  className="grid grid-cols-1 sm:grid-cols-5 gap-2 items-center"
+                >
                   {CERT_FIELDS.map(([key, label, max]) => (
                     <input
                       key={key}
@@ -424,11 +522,13 @@ function Mypage() {
                       onChange={(e) =>
                         changeItem("certificates", i, key, e.target.value)
                       }
+                      className="sm:col-span-2 rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none"
                     />
                   ))}
                   <button
                     type="button"
                     onClick={() => removeItem("certificates", i)}
+                    className="rounded-xl border border-danger-border bg-white px-3 py-2.5 text-xs font-semibold text-danger hover:bg-danger-bg transition-colors"
                   >
                     삭제
                   </button>
@@ -437,23 +537,29 @@ function Mypage() {
             </div>
 
             {/* 경력 (여러 개) */}
-            <div>
-              <p>경력</p>
-              <button
-                type="button"
-                onClick={() =>
-                  addItem("careers", {
-                    company: "",
-                    role: "",
-                    start_year: "",
-                    end_year: "",
-                  })
-                }
-              >
-                + 추가
-              </button>
+            <div className="rounded-2xl border border-gray-200 p-5 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-extrabold text-gray-900">경력</p>
+                <button
+                  type="button"
+                  onClick={() =>
+                    addItem("careers", {
+                      company: "",
+                      role: "",
+                      start_year: "",
+                      end_year: "",
+                    })
+                  }
+                  className="rounded-lg border border-brand bg-white px-3 py-1 text-xs font-bold text-brand hover:bg-brand-soft transition-colors"
+                >
+                  + 추가
+                </button>
+              </div>
               {resume.careers.map((item, i) => (
-                <div key={i}>
+                <div
+                  key={i}
+                  className="grid grid-cols-1 sm:grid-cols-9 gap-2 items-center"
+                >
                   {CAREER_FIELDS.map(([key, label, max]) => (
                     <input
                       key={key}
@@ -464,11 +570,13 @@ function Mypage() {
                       onChange={(e) =>
                         changeItem("careers", i, key, e.target.value)
                       }
+                      className="sm:col-span-2 rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none"
                     />
                   ))}
                   <button
                     type="button"
                     onClick={() => removeItem("careers", i)}
+                    className="rounded-xl border border-danger-border bg-white px-3 py-2.5 text-xs font-semibold text-danger hover:bg-danger-bg transition-colors"
                   >
                     삭제
                   </button>
@@ -476,51 +584,84 @@ function Mypage() {
               ))}
             </div>
 
-            <button type="button" onClick={saveResume}>
-              저장
-            </button>
-            {resumeMessage && <p>{resumeMessage}</p>}
+            <div className="flex items-center justify-end gap-3 pt-2">
+              {resumeMessage && (
+                <p className="text-xs font-medium text-brand">
+                  {resumeMessage}
+                </p>
+              )}
+              <button
+                type="button"
+                onClick={saveResume}
+                className="rounded-xl bg-brand px-6 py-3 text-sm font-bold text-white hover:bg-brand-hover transition-colors"
+              >
+                저장
+              </button>
+            </div>
           </section>
         )}
+
         {/* 면접 기록 탭 */}
         {activeTab === "history" && (
-          <section>
+          <section className="space-y-4">
             <div>
-              <h2>면접 기록</h2>
+              <h2 className="text-2xl font-extrabold text-gray-900 tracking-tight">
+                면접 기록
+              </h2>
             </div>
 
-            {interviews.length === 0 && <p>면접 기록이 없어요.</p>}
+            {interviews.length === 0 && (
+              <p className="text-sm text-gray-500 py-10 text-center">
+                면접 기록이 없어요.
+              </p>
+            )}
 
             {/* 서버에서 받은 면접마다 카드 하나씩 */}
             {interviews.map((iv) => (
-              <div key={iv.interview_id}>
-                <div>
-                  <span>
-                    {iv.cat_major} &gt; {iv.cat_minor}
-                  </span>
-                  <span>{formatDate(iv.created_at)}</span>
-                </div>
-                <div>
-                  <button
-                    type="button"
-                    onClick={() => toggleDialogues(iv.interview_id)}
-                  >
-                    {openId === iv.interview_id ? "대화 닫기" : "대화 보기"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => deleteInterview(iv.interview_id)}
-                  >
-                    삭제
-                  </button>
+              <div
+                key={iv.interview_id}
+                className="rounded-2xl border border-gray-200 bg-white p-5 space-y-3"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-base font-extrabold text-gray-900">
+                      {formatDate(iv.created_at)}
+                    </span>
+                    <span className="rounded-md bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700">
+                      {iv.cat_major} &gt; {iv.cat_minor}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => toggleDialogues(iv.interview_id)}
+                      className="rounded-lg border border-brand bg-white px-3.5 py-1.5 text-xs font-bold text-brand hover:bg-brand-soft transition-colors"
+                    >
+                      {openId === iv.interview_id ? "대화 닫기" : "대화 보기"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => deleteInterview(iv.interview_id)}
+                      className="rounded-lg border border-danger-border bg-white px-3.5 py-1.5 text-xs font-semibold text-danger hover:bg-danger-bg transition-colors"
+                    >
+                      삭제
+                    </button>
+                  </div>
                 </div>
 
                 {/* 펼친 카드만 질문·답변을 보여준다 */}
                 {openId === iv.interview_id &&
                   dialogues.map((d, i) => (
-                    <div key={i}>
-                      <p>Q. {d.question}</p>
-                      <p>A. {d.answer ?? "(답변 없음)"}</p>
+                    <div
+                      key={i}
+                      className="rounded-xl bg-gray-50 p-4 space-y-1.5 text-sm border border-gray-100"
+                    >
+                      <p className="font-bold text-gray-900">
+                        Q. {d.question}
+                      </p>
+                      <p className="text-gray-700">
+                        A. {d.answer ?? "(답변 없음)"}
+                      </p>
                     </div>
                   ))}
               </div>
@@ -530,20 +671,30 @@ function Mypage() {
 
         {/* 회원정보 수정 탭 */}
         {activeTab === "profile" && (
-          <section>
-            <h2>회원정보 수정</h2>
+          <section className="space-y-6">
+            <h2 className="text-2xl font-extrabold text-gray-900 tracking-tight">
+              회원정보 수정
+            </h2>
 
-            <div>
+            <div className="rounded-2xl bg-gray-100/80 px-6 py-5 flex items-center justify-between">
               <div>
-                <h3>문서 저장 동의</h3>
-                <p>{saveAgreed ? "동의함" : "동의 안 함"}</p>
+                <h3 className="text-sm font-extrabold text-gray-900">
+                  문서 저장 동의
+                </h3>
+                <p className="text-xs text-gray-500 mt-1">
+                  {saveAgreed ? "동의함" : "동의 안 함"}
+                </p>
               </div>
-              <button type="button" onClick={toggleAgreement}>
+              <button
+                type="button"
+                onClick={toggleAgreement}
+                className="rounded-xl border border-gray-300 bg-white px-4 py-2 text-xs font-semibold text-gray-800 hover:bg-gray-50 transition-colors"
+              >
                 동의 변경
               </button>
             </div>
 
-            <ul>
+            <ul className="list-disc pl-5 space-y-2 text-sm text-gray-700">
               <li>
                 내 문서는 본인만 조회할 수 있어요. 다른 회원은 접근할 수 없어요.
               </li>
@@ -553,7 +704,11 @@ function Mypage() {
               </li>
             </ul>
 
-            <button type="button" onClick={withdraw}>
+            <button
+              type="button"
+              onClick={withdraw}
+              className="rounded-xl border border-danger bg-white px-5 py-2.5 text-sm font-bold text-danger hover:bg-danger-bg transition-colors"
+            >
               회원 탈퇴
             </button>
           </section>

@@ -7,7 +7,7 @@ import Modal from "./Modal";
 // FastAPI 백엔드 주소 (환경변수가 없으면 기본 로컬 서버 사용)
 const API_URL = import.meta.env.VITE_API_URL || "http://192.168.1.13:8000";
 
-function SignupModal({ isOpen = true, onClose, onSwitchToLogin, onSuccess }) {
+function SignupModal({ isOpen = true, onClose, onSwitchToLogin, onSwitch, onSuccess }) {
   // ---------------------------------------------------------------------------
   // 2. 입력값 및 체크박스 상태 관리
   // ---------------------------------------------------------------------------
@@ -171,6 +171,7 @@ function SignupModal({ isOpen = true, onClose, onSwitchToLogin, onSuccess }) {
       setTimeout(() => {
         if (onClose) onClose();
         if (onSwitchToLogin) onSwitchToLogin();
+        else if (onSwitch) onSwitch();
       }, 1200);
 
     } catch {
@@ -193,24 +194,30 @@ function SignupModal({ isOpen = true, onClose, onSwitchToLogin, onSuccess }) {
           onClick={() => {
             if (onClose) onClose();
             if (onSwitchToLogin) onSwitchToLogin();
+            else if (onSwitch) onSwitch();
           }}
+          className="text-sm text-gray-500 hover:text-gray-800 mb-3 inline-flex items-center gap-1 font-medium"
         >
           ← 로그인으로
         </button>
 
         {/* 타이틀 및 안내 문구 */}
-        <h2>회원가입</h2>
-        <p>계정 정보를 입력하고 약관에 동의해 주세요.</p>
+        <h2 className="text-3xl font-extrabold text-gray-900 mb-1.5 tracking-tight">
+          회원가입
+        </h2>
+        <p className="text-sm text-gray-500 mb-6">
+          계정 정보를 입력하고 약관에 동의해 주세요.
+        </p>
 
         {/* 회원가입 폼 */}
-        <form onSubmit={handleSignup}>
+        <form onSubmit={handleSignup} className="space-y-4">
           {/* 아이디 입력칸 및 중복 확인 버튼 */}
           <div>
-            <p>아이디</p>
-            <div>
+            <p className="text-sm font-bold text-gray-800 mb-1.5">아이디</p>
+            <div className="flex gap-2">
               <input
                 type="text"
-                placeholder="영문, 숫자 조합 (2자 이상)"
+                placeholder="영문, 숫자 조합"
                 value={userId}
                 onChange={(e) => {
                   setUserId(e.target.value);
@@ -220,11 +227,13 @@ function SignupModal({ isOpen = true, onClose, onSwitchToLogin, onSuccess }) {
                 }}
                 disabled={loading || idChecking}
                 autoComplete="username"
+                className="flex-1 rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15 disabled:bg-gray-50"
               />
               <button
                 type="button"
                 onClick={handleCheckId}
                 disabled={loading || idChecking || !userId.trim()}
+                className="shrink-0 rounded-xl border border-brand px-3.5 py-3 text-xs font-bold text-brand hover:bg-brand-soft transition-colors disabled:border-gray-200 disabled:text-gray-400 disabled:hover:bg-transparent"
               >
                 {idChecking ? "확인 중…" : "중복 확인"}
               </button>
@@ -232,11 +241,9 @@ function SignupModal({ isOpen = true, onClose, onSwitchToLogin, onSuccess }) {
             {/* 아이디 중복 확인 결과 피드백 문구 */}
             {idCheckMessage && (
               <p
-                style={{
-                  color: "#000000",
-                  fontSize: "0.875rem",
-                  marginTop: "4px",
-                }}
+                className={`text-xs mt-1.5 font-medium ${
+                  isIdChecked ? "text-brand" : "text-danger"
+                }`}
               >
                 {idCheckMessage}
               </p>
@@ -245,7 +252,7 @@ function SignupModal({ isOpen = true, onClose, onSwitchToLogin, onSuccess }) {
 
           {/* 비밀번호 입력칸 */}
           <div>
-            <p>비밀번호</p>
+            <p className="text-sm font-bold text-gray-800 mb-1.5">비밀번호</p>
             <input
               type="password"
               placeholder="비밀번호"
@@ -253,12 +260,13 @@ function SignupModal({ isOpen = true, onClose, onSwitchToLogin, onSuccess }) {
               onChange={(e) => setPassword(e.target.value)}
               disabled={loading}
               autoComplete="new-password"
+              className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15 disabled:bg-gray-50"
             />
           </div>
 
           {/* 비밀번호 확인 입력칸 */}
           <div>
-            <p>비밀번호 확인</p>
+            <p className="text-sm font-bold text-gray-800 mb-1.5">비밀번호 확인</p>
             <input
               type="password"
               placeholder="비밀번호 다시 입력"
@@ -266,12 +274,13 @@ function SignupModal({ isOpen = true, onClose, onSwitchToLogin, onSuccess }) {
               onChange={(e) => setPasswordConfirm(e.target.value)}
               disabled={loading}
               autoComplete="new-password"
+              className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15 disabled:bg-gray-50"
             />
           </div>
 
           {/* 이메일 입력칸 */}
           <div>
-            <p>이메일</p>
+            <p className="text-sm font-bold text-gray-800 mb-1.5">이메일</p>
             <input
               type="email"
               placeholder="name@example.com"
@@ -279,73 +288,130 @@ function SignupModal({ isOpen = true, onClose, onSwitchToLogin, onSuccess }) {
               onChange={(e) => setEmail(e.target.value)}
               disabled={loading}
               autoComplete="email"
+              className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15 disabled:bg-gray-50"
             />
           </div>
 
           {/* 약관 동의 체크박스 영역 */}
-          <div>
+          <div className="rounded-2xl border border-gray-200 overflow-hidden mt-5">
             {/* 전체 동의 */}
-            <div>
+            <div className="flex items-center gap-3 bg-brand-light/70 px-4 py-3.5 border-b border-gray-200">
               <input
                 type="checkbox"
                 id="all_agree"
                 checked={isAllAgreed}
                 onChange={handleAllAgree}
+                className="w-4 h-4 accent-brand rounded cursor-pointer"
               />
-              <label htmlFor="all_agree">전체 동의</label>
+              <label
+                htmlFor="all_agree"
+                className="font-bold text-sm text-gray-900 cursor-pointer select-none"
+              >
+                전체 동의
+              </label>
             </div>
 
-            {/* [필수] 서비스 이용약관 동의 */}
-            <div>
-              <input
-                type="checkbox"
-                id="service_agree"
-                checked={serviceAgreed}
-                onChange={(e) => setServiceAgreed(e.target.checked)}
-              />
-              <label htmlFor="service_agree">[필수] 서비스 이용약관 동의</label>
-              <button type="button">보기</button>
-            </div>
-
-            {/* [필수] 개인정보 수집·이용 동의 */}
-            <div>
-              <input
-                type="checkbox"
-                id="privacy_agree"
-                checked={privacyAgreed}
-                onChange={(e) => setPrivacyAgreed(e.target.checked)}
-              />
-              <label htmlFor="privacy_agree">[필수] 개인정보 수집·이용 동의</label>
-              <button type="button">보기</button>
-            </div>
-
-            {/* [선택] 문서 저장 동의 */}
-            <div>
-              <div>
+            <div className="p-4 space-y-3 bg-white">
+              {/* [필수] 서비스 이용약관 동의 */}
+              <div className="flex items-center gap-2.5 text-sm">
                 <input
                   type="checkbox"
-                  id="save_agree"
-                  checked={saveAgreed}
-                  onChange={(e) => setSaveAgreed(e.target.checked)}
+                  id="service_agree"
+                  checked={serviceAgreed}
+                  onChange={(e) => setServiceAgreed(e.target.checked)}
+                  className="w-4 h-4 accent-brand rounded cursor-pointer"
                 />
-                <label htmlFor="save_agree">[선택] 문서 저장 동의</label>
+                <label
+                  htmlFor="service_agree"
+                  className="text-gray-800 cursor-pointer select-none"
+                >
+                  <strong className="text-brand font-bold">[필수]</strong> 서비스 이용약관 동의
+                </label>
+                <button
+                  type="button"
+                  className="ml-auto text-xs text-gray-500 underline hover:text-gray-800"
+                >
+                  보기
+                </button>
               </div>
-              <p>자소서 · 이력서 · 면접 대화를 저장해 마이페이지에서 다시 볼 수 있어요.</p>
+
+              {/* [필수] 개인정보 수집·이용 동의 */}
+              <div className="flex items-center gap-2.5 text-sm">
+                <input
+                  type="checkbox"
+                  id="privacy_agree"
+                  checked={privacyAgreed}
+                  onChange={(e) => setPrivacyAgreed(e.target.checked)}
+                  className="w-4 h-4 accent-brand rounded cursor-pointer"
+                />
+                <label
+                  htmlFor="privacy_agree"
+                  className="text-gray-800 cursor-pointer select-none"
+                >
+                  <strong className="text-brand font-bold">[필수]</strong> 개인정보 수집·이용 동의
+                </label>
+                <button
+                  type="button"
+                  className="ml-auto text-xs text-gray-500 underline hover:text-gray-800"
+                >
+                  보기
+                </button>
+              </div>
+
+              {/* [선택] 문서 저장 동의 */}
+              <div className="text-sm">
+                <div className="flex items-center gap-2.5">
+                  <input
+                    type="checkbox"
+                    id="save_agree"
+                    checked={saveAgreed}
+                    onChange={(e) => setSaveAgreed(e.target.checked)}
+                    className="w-4 h-4 accent-brand rounded cursor-pointer"
+                  />
+                  <label
+                    htmlFor="save_agree"
+                    className="text-gray-800 cursor-pointer select-none"
+                  >
+                    <strong className="text-gray-600 font-bold">[선택]</strong> 문서 저장 동의
+                  </label>
+                </div>
+                <p className="text-xs text-gray-500 mt-1 pl-6">
+                  자소서 · 이력서 · 면접 대화를 저장해 마이페이지에서 다시 볼 수 있어요.
+                </p>
+              </div>
             </div>
           </div>
 
           {/* 에러 및 성공 메시지 안내 */}
-          {errorMessage && <p>{errorMessage}</p>}
-          {successMessage && <p>{successMessage}</p>}
+          {errorMessage && (
+            <p className="text-xs font-medium text-danger bg-danger-bg border border-danger-border rounded-lg px-3 py-2">
+              {errorMessage}
+            </p>
+          )}
+          {successMessage && (
+            <p className="text-xs font-medium text-brand bg-brand-light rounded-lg px-3 py-2">
+              {successMessage}
+            </p>
+          )}
 
           {/* 가입하기 버튼: 요청 중일 때는 비활성화 */}
-          <button type="submit" disabled={loading}>
+          <button
+            type="submit"
+            disabled={loading}
+            className={`w-full rounded-xl py-3.5 text-base font-bold transition-colors mt-2 ${
+              serviceAgreed && privacyAgreed
+                ? "bg-brand text-white hover:bg-brand-hover"
+                : "bg-gray-200 text-gray-500 hover:bg-gray-300"
+            }`}
+          >
             {loading ? "가입 처리 중…" : "가입하기"}
           </button>
         </form>
 
         {/* 하단 안내 문구*/}
-        <p>필수 항목에 동의하면 가입할 수 있어요.</p>
+        <p className="text-center text-xs text-gray-500 mt-3">
+          필수 항목에 동의하면 가입할 수 있어요.
+        </p>
       </div>
     </Modal>
   );
