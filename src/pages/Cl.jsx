@@ -348,7 +348,7 @@ function Cl() {
             {/* 기다리는 중이거나 글이 없으면 버튼을 끔 (중복 요금, 서버 거절 방지) */}
             <button
               type="button"
-              onClick={() => askCards("/cl/feedback", "자소서 첨삭")}
+              onClick={() => askCards("/cl/feedback", "AI 첨삭")}
               disabled={loading || total === 0}
               className="rounded-xl bg-brand px-5 py-3 text-sm font-bold text-white hover:bg-brand-hover transition-colors disabled:opacity-50"
             >
@@ -440,10 +440,12 @@ function Cl() {
                 <strong className="text-brand font-bold">수정안</strong> ·{" "}
                 {card.suggestion}
               </p>
-              <p className="rounded-xl bg-gray-100 p-3.5 text-xs text-gray-700 leading-relaxed">
-                <strong className="font-bold text-gray-900">수정 이유</strong> ·{" "}
-                {card.reason}
-              </p>
+              {panelTitle !== "맞춤법 검사" && (
+                <p className="rounded-xl bg-gray-100 p-3.5 text-xs text-gray-700 leading-relaxed">
+                  <strong className="font-bold text-gray-900">수정 이유</strong>{" "}
+                  · {card.reason}
+                </p>
+              )}
               <div className="flex items-center gap-2 pt-1">
                 <button
                   type="button"
