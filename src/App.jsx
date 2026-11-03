@@ -8,15 +8,17 @@ import Footer from "./components/Footer"
 
 function App() {
   return (
-    <div>
+    <div className="min-h-screen flex flex-col bg-[#F8F9FA] text-gray-900">
       <Header />
 
-      <Routes>
-        <Route path='/' element={<Home />}/>
-        <Route path='/cl' element={<Cl />}/>
-        <Route path='/interview' element={<Interview />}/>
-        <Route path='/mypage' element={<Mypage />}/>
-      </Routes>
+      <div className="flex-1">
+        <Routes>
+          <Route path='/' element={<Home />}/>
+          <Route path='/cl' element={<Cl />}/>
+          <Route path='/interview' element={<Interview />}/>
+          <Route path='/mypage' element={<Mypage />}/>
+        </Routes>
+      </div>
 
       <Footer />
     </div>

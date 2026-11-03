@@ -5,7 +5,7 @@ import { useState } from "react";
 // ---------------------------------------------------------------------------
 
 // 서버(FastAPI) 주소. 배포하면 주소가 바뀌어서 한곳에 모아 둔다.
-const API_URL = import.meta.env.VITE_API_URL || "http://192.168.1.13:8000";
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 // 비회원 맛보기 글자 수 한도
 // 서버(routes/cl.py)의 GUEST_MAX_TOTAL_CHARS, MEMBER_MAX_TOTAL_CHARS도 같이 바꿀 것
 const GUEST_LIMIT = 500;
@@ -216,93 +216,141 @@ function Cl() {
   // ---------------------------------------------------------------------------
 
   return (
-    <main>
-      <div>
-        <h1>자기소개서</h1>
-        <span>
+    <main className="max-w-6xl mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <div className="lg:col-span-12 flex items-center justify-between">
+        <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
+          자기소개서
+        </h1>
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-4 py-1.5 text-xs font-medium text-gray-600 shadow-2xs">
           {isMember ? "글자 수" : "비회원 맛보기"}{" "}
-          <strong>
+          <strong className="text-brand font-bold">
             {total} / {LIMIT}자
           </strong>
         </span>
       </div>
-      <section>
-        <label>제목</label>
-        <div>
-          <input
-            type="text"
-            placeholder="제목을 입력하거나 '제목 추천'을 눌러보세요."
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            maxLength={200}
-          />
-          <button
-            type="button"
-            onClick={askTitle}
-            disabled={titleLoading || total === 0}
-          >
-            제목 추천
-          </button>
-        </div>
-        {titleError && <p>{titleError}</p>}
 
+      <section
+        className={`${
+          showFeedback ? "lg:col-span-7" : "lg:col-span-12"
+        } rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-2xs space-y-5`}
+      >
         <div>
-          <h2>① 지원 동기</h2>
+          <label className="block text-sm font-bold text-gray-800 mb-2">
+            제목
+          </label>
+          <div className="flex gap-2.5">
+            <input
+              type="text"
+              placeholder="제목을 입력하거나 '제목 추천'을 눌러보세요."
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              maxLength={200}
+              className="flex-1 rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15"
+            />
+            <button
+              type="button"
+              onClick={askTitle}
+              disabled={titleLoading || total === 0}
+              className="shrink-0 rounded-xl border border-brand bg-white px-4 py-3 text-sm font-bold text-brand hover:bg-brand-soft transition-colors disabled:border-gray-200 disabled:text-gray-400 disabled:hover:bg-transparent"
+            >
+              {titleLoading ? "추천 중…" : "제목 추천"}
+            </button>
+          </div>
+          {titleError && (
+            <p className="text-xs font-medium text-danger mt-2">{titleError}</p>
+          )}
+        </div>
+
+        <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-2.5">
+          <h2 className="text-sm font-extrabold text-gray-900">① 지원 동기</h2>
           <textarea
             placeholder="지원 동기를 작성해 주세요."
             value={motivation}
             onChange={(e) => change("motivation", e.target.value)}
+            className="w-full min-h-[140px] rounded-xl border border-gray-200 p-4 text-sm leading-relaxed text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15 resize-y"
           ></textarea>
-          <p>
-            공백 포함 <strong>{motivation.length}자</strong> 공백 제외{" "}
-            <strong>{count(motivation)}자</strong>
+          <p className="text-xs text-gray-500">
+            공백 포함{" "}
+            <strong className="font-bold text-gray-900 mr-2">
+              {motivation.length}자
+            </strong>{" "}
+            공백 제외{" "}
+            <strong className="font-bold text-gray-900">
+              {count(motivation)}자
+            </strong>
           </p>
         </div>
-        <div>
-          <h2>② 성장 과정</h2>
+
+        <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-2.5">
+          <h2 className="text-sm font-extrabold text-gray-900">② 성장 과정</h2>
           <textarea
             placeholder="성장 과정을 작성해 주세요."
             value={growth}
             onChange={(e) => change("growth", e.target.value)}
+            className="w-full min-h-[140px] rounded-xl border border-gray-200 p-4 text-sm leading-relaxed text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15 resize-y"
           ></textarea>
-          <p>
-            공백 포함 <strong>{growth.length}자</strong> 공백 제외{" "}
-            <strong>{count(growth)}자</strong>
+          <p className="text-xs text-gray-500">
+            공백 포함{" "}
+            <strong className="font-bold text-gray-900 mr-2">
+              {growth.length}자
+            </strong>{" "}
+            공백 제외{" "}
+            <strong className="font-bold text-gray-900">
+              {count(growth)}자
+            </strong>
           </p>
         </div>
 
-        <div>
-          <h2>③ 성격의 장단점</h2>
+        <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-2.5">
+          <h2 className="text-sm font-extrabold text-gray-900">
+            ③ 성격의 장단점
+          </h2>
           <textarea
             placeholder="성격의 장단점을 작성해 주세요."
             value={personality}
             onChange={(e) => change("personality", e.target.value)}
+            className="w-full min-h-[140px] rounded-xl border border-gray-200 p-4 text-sm leading-relaxed text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15 resize-y"
           ></textarea>
-          <p>
-            공백 포함 <strong>{personality.length}자</strong> 공백 제외{" "}
-            <strong>{count(personality)}자</strong>
+          <p className="text-xs text-gray-500">
+            공백 포함{" "}
+            <strong className="font-bold text-gray-900 mr-2">
+              {personality.length}자
+            </strong>{" "}
+            공백 제외{" "}
+            <strong className="font-bold text-gray-900">
+              {count(personality)}자
+            </strong>
           </p>
         </div>
 
-        <div>
-          <h2>④ 입사 후 포부</h2>
+        <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-2.5">
+          <h2 className="text-sm font-extrabold text-gray-900">
+            ④ 입사 후 포부
+          </h2>
           <textarea
             placeholder="입사 후 포부를 작성해 주세요."
             value={plan}
             onChange={(e) => change("plan", e.target.value)}
+            className="w-full min-h-[140px] rounded-xl border border-gray-200 p-4 text-sm leading-relaxed text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15 resize-y"
           ></textarea>
-          <p>
-            공백 포함 <strong>{plan.length}자</strong> 공백 제외{" "}
-            <strong>{count(plan)}자</strong>
+          <p className="text-xs text-gray-500">
+            공백 포함{" "}
+            <strong className="font-bold text-gray-900 mr-2">
+              {plan.length}자
+            </strong>{" "}
+            공백 제외{" "}
+            <strong className="font-bold text-gray-900">{count(plan)}자</strong>
           </p>
         </div>
-        <div>
-          <div>
+
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+          <div className="flex flex-wrap items-center gap-2.5">
             {/* 기다리는 중이거나 글이 없으면 버튼을 끔 (중복 요금, 서버 거절 방지) */}
             <button
               type="button"
               onClick={() => askCards("/cl/feedback", "자소서 첨삭")}
               disabled={loading || total === 0}
+              className="rounded-xl bg-brand px-5 py-3 text-sm font-bold text-white hover:bg-brand-hover transition-colors disabled:opacity-50"
             >
               AI 첨삭 받기
             </button>
@@ -310,54 +358,105 @@ function Cl() {
               type="button"
               onClick={() => askCards("/cl/spellcheck", "맞춤법 검사")}
               disabled={loading || total === 0}
+              className="rounded-xl border border-brand bg-white px-5 py-3 text-sm font-bold text-brand hover:bg-brand-soft transition-colors disabled:border-gray-200 disabled:text-gray-400 disabled:hover:bg-transparent"
             >
               맞춤법 검사
             </button>
           </div>
-          <button
-            type="button"
-            onClick={save}
-            disabled={saving || total === 0 || !title.trim()}
-          >
-            마이페이지에 저장
-          </button>
-          {saveMessage && <p>{saveMessage}</p>}
+          <div className="flex items-center gap-3 ml-auto">
+            {saveMessage && (
+              <p className="text-xs font-medium text-brand">{saveMessage}</p>
+            )}
+            <button
+              type="button"
+              onClick={save}
+              disabled={saving || total === 0 || !title.trim()}
+              className="rounded-xl border border-gray-300 bg-white px-5 py-3 text-sm font-semibold text-gray-800 hover:bg-gray-50 transition-colors disabled:opacity-50"
+            >
+              마이페이지에 저장
+            </button>
+          </div>
         </div>
       </section>
 
       {showFeedback && (
-        <aside>
-          <div>
-            <h2>{panelTitle}</h2>
-            <button type="button" onClick={() => setShowFeedback(false)}>
+        <aside className="lg:col-span-5 rounded-2xl border border-gray-200 bg-white p-6 shadow-2xs space-y-4 lg:sticky lg:top-24">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-extrabold text-gray-900">
+              {panelTitle}
+            </h2>
+            <button
+              type="button"
+              onClick={() => setShowFeedback(false)}
+              className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center text-sm transition-colors"
+            >
               ✕
             </button>
           </div>
 
-          {loading && <p>결과를 만드는 중입니다…</p>}
-          {error && <p>{error}</p>}
-          {notice && <p>{notice}</p>}
+          {loading && (
+            <p className="text-sm text-gray-500 py-8 text-center">
+              결과를 만드는 중입니다…
+            </p>
+          )}
+          {error && (
+            <p className="text-xs font-medium text-danger bg-danger-bg border border-danger-border rounded-xl p-3">
+              {error}
+            </p>
+          )}
+          {notice && (
+            <p className="text-xs font-medium text-warn-text bg-warn-bg border border-warn-border rounded-xl p-3">
+              {notice}
+            </p>
+          )}
           {!loading && !error && feedbacks.length === 0 && (
-            <p>남은 결과가 없습니다.</p>
+            <p className="text-sm text-gray-500 py-8 text-center">
+              남은 결과가 없습니다.
+            </p>
           )}
 
           {feedbacks.map((card) => (
-            <div key={card.sentence_id}>
-              <span>{card.tag}</span>
-              <p>
+            <div
+              key={card.sentence_id}
+              className={`rounded-2xl border p-5 space-y-3 ${
+                card.tag === "수정 필요"
+                  ? "border-gray-200 bg-white"
+                  : "border-brand-border bg-white"
+              }`}
+            >
+              <span
+                className={`inline-block rounded-md px-2.5 py-1 text-xs font-bold ${
+                  card.tag === "수정 필요"
+                    ? "bg-warn-badge text-warn-text"
+                    : "bg-brand-light text-brand"
+                }`}
+              >
+                {card.tag}
+              </span>
+              <p className="text-sm text-gray-400 leading-relaxed">
                 <del>{card.original}</del>
               </p>
-              <p>
-                <strong>수정안</strong> · {card.suggestion}
+              <p className="text-sm text-gray-900 leading-relaxed">
+                <strong className="text-brand font-bold">수정안</strong> ·{" "}
+                {card.suggestion}
               </p>
-              <p>
-                <strong>수정 이유</strong> · {card.reason}
+              <p className="rounded-xl bg-gray-100 p-3.5 text-xs text-gray-700 leading-relaxed">
+                <strong className="font-bold text-gray-900">수정 이유</strong> ·{" "}
+                {card.reason}
               </p>
-              <div>
-                <button type="button" onClick={() => apply(card)}>
+              <div className="flex items-center gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => apply(card)}
+                  className="rounded-lg bg-brand px-3.5 py-1.5 text-xs font-bold text-white hover:bg-brand-hover transition-colors"
+                >
                   적용
                 </button>
-                <button type="button" onClick={() => ignore(card)}>
+                <button
+                  type="button"
+                  onClick={() => ignore(card)}
+                  className="rounded-lg border border-gray-300 bg-white px-3.5 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+                >
                   무시
                 </button>
               </div>
