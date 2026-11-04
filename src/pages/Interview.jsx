@@ -1,4 +1,6 @@
-import { useState } from "react"
+import { useState } from "react";
+import ClModal from "../components/modals/ClModal";
+import ResumeModal from "../components/modals/ResumeModal";
 
 const CATEGORIES = ["지원 동기", "경험 및 역량", "인성 및 협업", "입사 후 포부"]
 const JOB_CATS = {
@@ -19,16 +21,6 @@ function Interview() {
   const [title, setTitle] = useState("기획·전략 > 경영·비즈니스기획") //대화 제목
   const [messages, setMessages] = useState([])       // 질문·답변
   const [evidences, setEvidences] = useState([])     // 근거 문장
-
-  const pdfSelect = (e, docType) => {
-    const file = e.target.files[0] //<input type="file">
-    if (!file) return
-
-    if (docType === "resume") setResumeFile(file)
-    if (docType === "cl") setClFile(file)
-  }
-
-  const askQuestion = async () => {
     setTitle(`${catMajor} > ${catMinor}`) //제목 변경
 
     const formData = new FormData()
@@ -36,25 +28,45 @@ function Interview() {
     if (resumeFile) formData.append("resume", resumeFile)
     if (clFile) formData.append("cl", clFile)
 
+    const formData = new FormData();
+    formData.append("job", selects[1].value);
+    if (resumeFile) formData.append("resume", resumeFile);
+    else if (myResume) formData.append("resume_saved", myResume);
+    if (clFile) formData.append("cl", clFile);
+    else if (myCl) {
+      // 4칸을 "제목 + 내용"으로 이어 붙여 글 하나로 보낸다 (빈 칸은 뺌)
+      const text = [
+        ["지원 동기", myCl.motivation],
+        ["성장 과정", myCl.growth],
+        ["성격의 장단점", myCl.personality],
+        ["입사 후 포부", myCl.plan],
+      ]
+        .filter(([, body]) => body)
+        .map(([label, body]) => `[${label}]\n${body}`)
+        .join("\n\n");
+      formData.append("cl_saved", text);
+    }
     const res = await fetch("http://127.0.0.1:8000/question", {
       method: "POST",
       body: formData, //FormData는 headers 쓰면 안 됨
-    })
-    const data = await res.json()
-    setEvidences([data.evidences || []])
-    setMessages([{ type: "question", category: CATEGORIES[0], text: data.question }])
-  }
+    });
+    const data = await res.json();
+    setEvidences([data.evidences || []]);
+    setMessages([
+      { type: "question", category: CATEGORIES[0], text: data.question },
+    ]);
+  };
 
   const submitAnswer = async (e) => {
-    const textarea = e.currentTarget.previousElementSibling
-    const text = textarea.value
-    if (!text.trim() || messages.at(-1)?.type !== "question") return
-    textarea.value = ""
+    const textarea = e.currentTarget.previousElementSibling;
+    const text = textarea.value;
+    if (!text.trim() || messages.at(-1)?.type !== "question") return;
+    textarea.value = "";
 
-    setMessages((prev) => [...prev, { type: "answer", text }])
+    setMessages((prev) => [...prev, { type: "answer", text }]);
 
-    const nextCategory = CATEGORIES[evidences.length]
-    if (!nextCategory) return
+    const nextCategory = CATEGORIES[evidences.length];
+    if (!nextCategory) return;
 
     const res = await fetch("http://127.0.0.1:8000/answer", {
       method: "POST",
@@ -66,8 +78,8 @@ function Interview() {
     setMessages((prev) => [
       ...prev,
       { type: "question", category: nextCategory, text: data.question },
-    ])
-  }
+    ]);
+  };
 
   return (
     <div
@@ -120,10 +132,15 @@ function Interview() {
               이력서
             </label>
             <div className="row flex items-center gap-2">
-              {resumeFile ? (
-                <span className="truncate rounded-xl border border-brand-border bg-brand-light px-3 py-2.5 text-xs font-semibold text-brand">
-                  {resumeFile.name}
-                </span>
+              {resumeFile || myResume ? (
+                // 넣은 이력서: 누르면 모달을 다시 열어 바꿀 수 있다
+                <button
+                  type="button"
+                  onClick={() => setShowResumeModal(true)}
+                  className="truncate rounded-xl border border-brand-border bg-brand-light px-3 py-2.5 text-xs font-semibold text-brand hover:bg-brand-soft transition-colors"
+                >
+                  {resumeFile ? resumeFile.name : "내 이력서"}
+                </button>
               ) : (
                 <button
                   type="button"
@@ -140,12 +157,16 @@ function Interview() {
                 hidden
                 onChange={(e) => pdfSelect(e, "resume")}
               />
-              <button
-                type="button"
-                className="rounded-xl border border-brand bg-white px-3.5 py-2.5 text-xs font-bold text-brand hover:bg-brand-soft transition-colors"
-              >
-                내 이력서 가져오기
-              </button>
+              {/* 이력서를 넣기 전에만 보인다 */}
+              {!resumeFile && !myResume && (
+                <button
+                  type="button"
+                  onClick={() => setShowResumeModal(true)}
+                  className="rounded-xl border border-brand bg-white px-3.5 py-2.5 text-xs font-bold text-brand hover:bg-brand-soft transition-colors"
+                >
+                  내 이력서 가져오기
+                </button>
+              )}
             </div>
           </div>
 
@@ -158,6 +179,15 @@ function Interview() {
                 <span className="truncate rounded-xl border border-brand-border bg-brand-light px-3 py-2.5 text-xs font-semibold text-brand">
                   {clFile.name}
                 </span>
+              ) : myCl ? (
+                // 고른 자소서 제목: 누르면 모달을 다시 열어 바꿀 수 있다
+                <button
+                  type="button"
+                  onClick={() => setShowClModal(true)}
+                  className="truncate rounded-xl border border-brand-border bg-brand-light px-3 py-2.5 text-xs font-semibold text-brand hover:bg-brand-soft transition-colors"
+                >
+                  {myCl.title}
+                </button>
               ) : (
                 <button
                   type="button"
@@ -173,12 +203,16 @@ function Interview() {
                 hidden
                 onChange={(e) => pdfSelect(e, "cl")}
               />
-              <button
-                type="button"
-                className="rounded-xl border border-brand bg-white px-3.5 py-2.5 text-xs font-bold text-brand hover:bg-brand-soft transition-colors"
-              >
-                내 자기소개서 가져오기
-              </button>
+              {/* 자소서를 고르기 전에만 보인다 */}
+              {!myCl && (
+                <button
+                  type="button"
+                  onClick={() => setShowClModal(true)}
+                  className="rounded-xl border border-brand bg-white px-3.5 py-2.5 text-xs font-bold text-brand hover:bg-brand-soft transition-colors"
+                >
+                  내 자기소개서 가져오기
+                </button>
+              )}
             </div>
           </div>
 
@@ -402,7 +436,7 @@ function Interview() {
               >
                 {msg.text}
               </div>
-            )
+            ),
           )}
           <div
             id="warn-box"
@@ -437,7 +471,20 @@ function Interview() {
           </button>
         </div>
       </div>
+      {showClModal && (
+        <ClModal onClose={() => setShowClModal(false)} onSelect={setMyCl} />
+      )}
+      {showResumeModal && (
+        <ResumeModal
+          onClose={() => setShowResumeModal(false)}
+          onSelect={({ file, text }) => {
+            // 한쪽을 넣으면 다른 쪽은 비운다 (PDF ↔ 양식 바꿀 때 예전 값이 남지 않게)
+            setResumeFile(file ?? null);
+            setMyResume(text ?? "");
+          }}
+        />
+      )}
     </div>
-  )
+  );
 }
-export default Interview
+export default Interview;
