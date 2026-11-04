@@ -10,11 +10,11 @@ function Footer() {
         </div>
 
         <div className="flex items-center gap-4">
-          <p className="font-semibold text-gray-700">TEAM2</p>
+          <p className="font-semibold text-gray-700">TEAM 2</p>
           <p className="cursor-pointer hover:text-gray-900">문의하기</p>
         </div>
 
-        <p className="text-gray-400">© 2026 합격메이트. All rights reserved.</p>
+        <p className="text-gray-400">© 2026 합격 메이트. All rights reserved.</p>
       </div>
     </footer>
   );
