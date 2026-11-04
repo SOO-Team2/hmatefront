@@ -21,6 +21,7 @@ function Interview() {
   const [title, setTitle] = useState("기획·전략 > 경영·비즈니스기획") //대화 제목
   const [messages, setMessages] = useState([])       // 질문·답변
   const [evidences, setEvidences] = useState([])     // 근거 문장
+  const [filenames, setFilenames] = useState([])     // 해시 파일명
 
   const [showClModal, setShowClModal] = useState(false); // 자소서 모달 열림
   const [myCl, setMyCl] = useState(null); // 모달에서 고른 자소서
@@ -42,24 +43,13 @@ function Interview() {
     if (resumeFile) formData.append("resume", resumeFile);
     else if (myResume) formData.append("resume_saved", myResume);
     if (clFile) formData.append("cl", clFile);
-    else if (myCl) {
-      // 4칸을 "제목 + 내용"으로 이어 붙여 글 하나로 보낸다 (빈 칸은 뺌)
-      const text = [
-        ["지원 동기", myCl.motivation],
-        ["성장 과정", myCl.growth],
-        ["성격의 장단점", myCl.personality],
-        ["입사 후 포부", myCl.plan],
-      ]
-        .filter(([, body]) => body)
-        .map(([label, body]) => `[${label}]\n${body}`)
-        .join("\n\n");
-      formData.append("cl_saved", text);
-    }
+    else if (myCl) formData.append("cl_saved", myCl.text);
     const res = await fetch("http://127.0.0.1:8000/question", {
       method: "POST",
       body: formData, //FormData는 headers 쓰면 안 됨
     });
     const data = await res.json();
+    setFilenames(data.filenames || []);
     setEvidences([data.evidences || []]);
     setMessages([
       { type: "question", category: CATEGORIES[0], text: data.question },
@@ -80,7 +70,11 @@ function Interview() {
     const res = await fetch("http://127.0.0.1:8000/answer", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ category: nextCategory, job: title.split(" > ")[1] }),
+      body: JSON.stringify({
+        category: nextCategory,
+        job: title.split(" > ")[1],
+        filenames,
+      }),
     })
     const data = await res.json()
     setEvidences((prev) => [...prev, data.evidences || []])
@@ -166,7 +160,7 @@ function Interview() {
                 hidden
                 onChange={(e) => pdfSelect(e, "resume")}
               />
-              {/* 이력서를 넣기 전에만 보인다 */}
+              {/* 이력서를 넣기 전에만 보임 */}
               {!resumeFile && !myResume && (
                 <button
                   type="button"
