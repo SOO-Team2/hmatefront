@@ -21,15 +21,24 @@ function Interview() {
   const [title, setTitle] = useState("기획·전략 > 경영·비즈니스기획") //대화 제목
   const [messages, setMessages] = useState([])       // 질문·답변
   const [evidences, setEvidences] = useState([])     // 근거 문장
+
+  const [showClModal, setShowClModal] = useState(false); // 자소서 모달 열림
+  const [myCl, setMyCl] = useState(null); // 모달에서 고른 자소서
+  const [myResume, setMyResume] = useState(""); // 마이페이지 양식 이력서를 합친 글
+  const [showResumeModal, setShowResumeModal] = useState(false); // 이력서 모달 열림
+  const pdfSelect = (e, docType) => {
+    const file = e.target.files[0]; //<input type="file">
+    if (!file) return;
+
+    if (docType === "resume") setResumeFile(file);
+    if (docType === "cl") setClFile(file);
+  };
+
+  const askQuestion = async () => {
     setTitle(`${catMajor} > ${catMinor}`) //제목 변경
 
-    const formData = new FormData()
-    formData.append("job", catMinor)
-    if (resumeFile) formData.append("resume", resumeFile)
-    if (clFile) formData.append("cl", clFile)
-
     const formData = new FormData();
-    formData.append("job", selects[1].value);
+    formData.append("job", catMinor);
     if (resumeFile) formData.append("resume", resumeFile);
     else if (myResume) formData.append("resume_saved", myResume);
     if (clFile) formData.append("cl", clFile);
