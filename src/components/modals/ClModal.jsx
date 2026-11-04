@@ -34,6 +34,21 @@ function ClModal({ onClose, onSelect }) {
     if (token) load();
   }, [token]);
 
+  // 카드를 누르면 4칸을 "제목 + 내용"으로 이어 붙여 부모에게 넘기고 닫는다 (빈 칸은 뺌)
+  const pick = (cl) => {
+    const text = [
+      ["지원 동기", cl.motivation],
+      ["성장 과정", cl.growth],
+      ["성격의 장단점", cl.personality],
+      ["입사 후 포부", cl.plan],
+    ]
+      .filter(([, body]) => body)
+      .map(([label, body]) => `[${label}]\n${body}`)
+      .join("\n\n");
+    onSelect({ title: cl.title, text });
+    onClose();
+  };
+
   return (
     <Modal onClose={onClose}>
       <div className="flex items-center justify-between mb-5">
@@ -57,10 +72,7 @@ function ClModal({ onClose, onSelect }) {
           <button
             key={cl.cl_id}
             type="button"
-            onClick={() => {
-              onSelect(cl);
-              onClose();
-            }}
+            onClick={() => pick(cl)}
             className="w-full text-left rounded-xl border border-gray-200 bg-white p-4 hover:border-brand hover:bg-brand-soft transition-colors"
           >
             <p className="text-sm font-extrabold text-gray-900">{cl.title}</p>
