@@ -9,15 +9,15 @@ const SECTIONS = [
   ["personality", "성격의 장단점"],
   ["plan", "입사 후 포부"],
 ];
-
+// [칸 이름, 제목, 최대 글자 수, 필수인지]
 const RESUME_FIELDS = [
-  ["name", "이름", 50],
-  ["school", "학교", 100],
-  ["major", "전공", 100],
-  ["skill", "보유 기술 (예: Python, SQL, Django)", 255],
+  ["name", "이름", 50, true],
+  ["school", "학교", 100, true],
+  ["major", "전공", 100, true],
+  ["skill", "보유 기술 (예: Python, SQL 등)", 255, false],
 ];
 const CERT_FIELDS = [
-  ["cert", "자격증명", 100],
+  ["cert", "자격증명 *", 100],
   ["org", "발급 기관", 100],
 ];
 const CAREER_FIELDS = [
@@ -54,6 +54,7 @@ function Mypage() {
     skill: "",
     careers: [],
     certificates: [],
+    resume_filename: "",
   });
   // 내 면접 목록
   const [interviews, setInterviews] = useState([]);
@@ -227,8 +228,8 @@ function Mypage() {
     }
   };
 
-  // 현재 선택된 사이드바 탭(시작탭 : Cl)
-  const [activeTab, setActiveTab] = useState("cl");
+  // 현재 선택된 사이드바 탭(시작탭 : 이력서)
+  const [activeTab, setActiveTab] = useState("resume");
 
   // 이력서 칸 하나 바꾸기 (이름, 학교, 전공, 기술)
   const changeResume = (key, value) => setResume({ ...resume, [key]: value });
@@ -280,8 +281,55 @@ function Mypage() {
       setResumeMessage("서버에 연결할 수 없습니다.");
     }
   };
+  // 이력서 작성 방식 ("pdf" = PDF 첨부, "form" = 기본 양식)
+  const [resumeMode, setResumeMode] = useState("form");
+  // 새로 고른 이력서 PDF (저장 전)
+  const [pdfFile, setPdfFile] = useState(null);
+
+  // PDF 저장: 고른 파일을 서버에 보낸다 (파일이라 Content-Type은 브라우저가 정함)
+  const savePdf = async () => {
+    if (!pdfFile) {
+      setResumeMessage("PDF 파일을 골라 주세요.");
+      return;
+    }
+    setResumeMessage("");
+    const form = new FormData();
+    form.append("file", pdfFile);
+    try {
+      const res = await fetch(`${API_URL}/mypage/resume/pdf`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` },
+        body: form,
+      });
+      if (res.ok) {
+        setResume({ ...resume, ...(await res.json()) });
+        setPdfFile(null);
+        setResumeMessage("저장했어요.");
+      } else {
+        setResumeMessage("저장하지 못했습니다.");
+      }
+    } catch {
+      setResumeMessage("서버에 연결할 수 없습니다.");
+    }
+  };
+
+  // PDF 삭제: 서버에서 지우고, 성공하면 화면에서도 뺀다
+  const deletePdf = async () => {
+    if (!confirm("삭제하면 되돌릴 수 없어요. 삭제할까요?")) return;
+    try {
+      const res = await fetch(`${API_URL}/mypage/resume/pdf`, {
+        method: "DELETE",
+        headers,
+      });
+      if (res.ok) setResume({ ...resume, resume_filename: "" });
+      else alert("삭제하지 못했습니다.");
+    } catch {
+      alert("서버에 연결할 수 없습니다.");
+    }
+  };
 
   // 로그인 안 했으면 마이페이지 대신 안내만
+
   if (!token) {
     return (
       <main className="max-w-6xl mx-auto px-6 py-16">
@@ -299,23 +347,10 @@ function Mypage() {
       {/* 1. 좌측 사이드바 (프로필 및 탭 메뉴) */}
       <aside className="md:col-span-3 rounded-2xl border border-gray-200 bg-white p-5 shadow-2xs">
         <div className="pb-4 mb-3 border-b border-gray-100 px-2">
-          <h2 className="text-lg font-extrabold text-gray-900">
-            {user?.id}님
-          </h2>
+          <h2 className="text-lg font-extrabold text-gray-900">{user?.id}님</h2>
         </div>
 
         <nav className="flex flex-col gap-1">
-          <button
-            type="button"
-            onClick={() => setActiveTab("cl")}
-            className={`w-full text-left px-4 py-2.5 rounded-xl text-sm transition-colors ${
-              activeTab === "cl"
-                ? "bg-brand-light text-brand font-bold"
-                : "text-gray-700 hover:bg-gray-100 font-medium"
-            }`}
-          >
-            자기소개서
-          </button>
           <button
             type="button"
             onClick={() => setActiveTab("resume")}
@@ -326,6 +361,17 @@ function Mypage() {
             }`}
           >
             이력서
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("cl")}
+            className={`w-full text-left px-4 py-2.5 rounded-xl text-sm transition-colors ${
+              activeTab === "cl"
+                ? "bg-brand-light text-brand font-bold"
+                : "text-gray-700 hover:bg-gray-100 font-medium"
+            }`}
+          >
+            자기소개서
           </button>
           <button
             type="button"
@@ -476,115 +522,180 @@ function Mypage() {
             <h2 className="text-2xl font-extrabold text-gray-900 tracking-tight">
               이력서
             </h2>
-
-            {/* 이름, 학교, 전공, 보유 기술 */}
-            {RESUME_FIELDS.map(([key, label, max]) => (
-              <div key={key}>
-                <p className="text-xs font-bold text-gray-800 mb-1.5">
+            {/* 작성 방식 고르기 */}
+            <div className="inline-flex rounded-xl bg-gray-100 p-1">
+              {[
+                ["pdf", "PDF 첨부"],
+                ["form", "기본 양식으로 작성"],
+              ].map(([key, label]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setResumeMode(key)}
+                  className={`rounded-lg px-4 py-2 text-sm transition-colors ${
+                    resumeMode === key
+                      ? "bg-white text-brand font-bold shadow-2xs"
+                      : "text-gray-600 hover:text-gray-900 font-medium"
+                  }`}
+                >
                   {label}
-                </p>
-                <input
-                  type="text"
-                  maxLength={max}
-                  value={resume[key] ?? ""}
-                  onChange={(e) => changeResume(key, e.target.value)}
-                  className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15"
-                />
-              </div>
-            ))}
-
-            {/* 자격증 (여러 개) */}
-            <div className="rounded-2xl border border-gray-200 p-5 space-y-3">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-extrabold text-gray-900">자격증</p>
-                <button
-                  type="button"
-                  onClick={() =>
-                    addItem("certificates", { cert: "", org: "" })
-                  }
-                  className="rounded-lg border border-brand bg-white px-3 py-1 text-xs font-bold text-brand hover:bg-brand-soft transition-colors"
-                >
-                  + 추가
                 </button>
-              </div>
-              {resume.certificates.map((item, i) => (
-                <div
-                  key={i}
-                  className="grid grid-cols-1 sm:grid-cols-5 gap-2 items-center"
-                >
-                  {CERT_FIELDS.map(([key, label, max]) => (
-                    <input
-                      key={key}
-                      type="text"
-                      placeholder={label}
-                      maxLength={max}
-                      value={item[key] ?? ""}
-                      onChange={(e) =>
-                        changeItem("certificates", i, key, e.target.value)
-                      }
-                      className="sm:col-span-2 rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none"
-                    />
-                  ))}
-                  <button
-                    type="button"
-                    onClick={() => removeItem("certificates", i)}
-                    className="rounded-xl border border-danger-border bg-white px-3 py-2.5 text-xs font-semibold text-danger hover:bg-danger-bg transition-colors"
-                  >
-                    삭제
-                  </button>
-                </div>
               ))}
             </div>
 
-            {/* 경력 (여러 개) */}
-            <div className="rounded-2xl border border-gray-200 p-5 space-y-3">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-extrabold text-gray-900">경력</p>
-                <button
-                  type="button"
-                  onClick={() =>
-                    addItem("careers", {
-                      company: "",
-                      role: "",
-                      start_year: "",
-                      end_year: "",
-                    })
-                  }
-                  className="rounded-lg border border-brand bg-white px-3 py-1 text-xs font-bold text-brand hover:bg-brand-soft transition-colors"
-                >
-                  + 추가
-                </button>
-              </div>
-              {resume.careers.map((item, i) => (
-                <div
-                  key={i}
-                  className="grid grid-cols-1 sm:grid-cols-9 gap-2 items-center"
-                >
-                  {CAREER_FIELDS.map(([key, label, max]) => (
-                    <input
-                      key={key}
-                      type="text"
-                      placeholder={label}
-                      maxLength={max}
-                      value={item[key] ?? ""}
-                      onChange={(e) =>
-                        changeItem("careers", i, key, e.target.value)
-                      }
-                      className="sm:col-span-2 rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none"
-                    />
-                  ))}
-                  <button
-                    type="button"
-                    onClick={() => removeItem("careers", i)}
-                    className="rounded-xl border border-danger-border bg-white px-3 py-2.5 text-xs font-semibold text-danger hover:bg-danger-bg transition-colors"
-                  >
-                    삭제
-                  </button>
-                </div>
-              ))}
-            </div>
+            {/* PDF 첨부: 상자를 누르면 파일 고르기 창이 열린다 */}
+            {resumeMode === "pdf" && (
+              <>
+                <label className="flex items-center justify-between gap-3 rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 px-6 py-5 cursor-pointer">
+                  <span className="text-sm text-gray-700">
+                    {pdfFile ? pdfFile.name : "이력서 PDF 파일을 첨부하세요"}
+                  </span>
+                  <span className="rounded-xl border border-brand bg-white px-4 py-2 text-sm font-bold text-brand hover:bg-brand-soft transition-colors">
+                    PDF 첨부하기
+                  </span>
+                  <input
+                    type="file"
+                    accept=".pdf"
+                    className="hidden"
+                    onChange={(e) => setPdfFile(e.target.files[0] ?? null)}
+                  />
+                </label>
 
-            <div className="flex items-center justify-end gap-3 pt-2">
+                {/* 저장된 PDF가 있으면 이름·날짜와 삭제 버튼 */}
+                {resume.resume_filename && (
+                  <div className="flex items-center justify-between gap-3 rounded-xl border border-gray-200 px-4 py-3">
+                    <p className="text-sm text-gray-700">
+                      {resume.resume_filename} 저장됨
+                    </p>
+                    <button
+                      type="button"
+                      onClick={deletePdf}
+                      className="rounded-lg border border-danger-border bg-white px-3 py-1.5 text-xs font-semibold text-danger hover:bg-danger-bg transition-colors"
+                    >
+                      삭제
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* 기본 양식: 아래 입력칸들 */}
+            {resumeMode === "form" && (
+              <>
+                {/* 이름, 학교, 전공, 보유 기술 */}
+                {RESUME_FIELDS.map(([key, label, max, required]) => (
+                  <div key={key}>
+                    <p className="text-xs font-bold text-gray-800 mb-1.5">
+                      {label}
+                      {required && <span className="text-danger"> *</span>}
+                    </p>
+                    <input
+                      type="text"
+                      maxLength={max}
+                      value={resume[key] ?? ""}
+                      onChange={(e) => changeResume(key, e.target.value)}
+                      className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15"
+                    />
+                  </div>
+                ))}
+
+                {/* 자격증 (여러 개) */}
+                <div className="rounded-2xl border border-gray-200 p-5 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-extrabold text-gray-900">
+                      자격증
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        addItem("certificates", { cert: "", org: "" })
+                      }
+                      className="rounded-lg border border-brand bg-white px-3 py-1 text-xs font-bold text-brand hover:bg-brand-soft transition-colors"
+                    >
+                      + 추가
+                    </button>
+                  </div>
+                  {resume.certificates.map((item, i) => (
+                    <div
+                      key={i}
+                      className="grid grid-cols-1 sm:grid-cols-5 gap-2 items-center"
+                    >
+                      {CERT_FIELDS.map(([key, label, max]) => (
+                        <input
+                          key={key}
+                          type="text"
+                          placeholder={label}
+                          maxLength={max}
+                          value={item[key] ?? ""}
+                          onChange={(e) =>
+                            changeItem("certificates", i, key, e.target.value)
+                          }
+                          className="sm:col-span-2 rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none"
+                        />
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => removeItem("certificates", i)}
+                        className="rounded-xl border border-danger-border bg-white px-3 py-2.5 text-xs font-semibold text-danger hover:bg-danger-bg transition-colors"
+                      >
+                        삭제
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                {/* 경력 (여러 개) */}
+                <div className="rounded-2xl border border-gray-200 p-5 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-extrabold text-gray-900">경력</p>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        addItem("careers", {
+                          company: "",
+                          role: "",
+                          start_year: "",
+                          end_year: "",
+                        })
+                      }
+                      className="rounded-lg border border-brand bg-white px-3 py-1 text-xs font-bold text-brand hover:bg-brand-soft transition-colors"
+                    >
+                      + 추가
+                    </button>
+                  </div>
+                  {resume.careers.map((item, i) => (
+                    <div
+                      key={i}
+                      className="grid grid-cols-1 sm:grid-cols-9 gap-2 items-center"
+                    >
+                      {CAREER_FIELDS.map(([key, label, max]) => (
+                        <input
+                          key={key}
+                          type="text"
+                          placeholder={label}
+                          maxLength={max}
+                          value={item[key] ?? ""}
+                          onChange={(e) =>
+                            changeItem("careers", i, key, e.target.value)
+                          }
+                          className="sm:col-span-2 rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none"
+                        />
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => removeItem("careers", i)}
+                        className="rounded-xl border border-danger-border bg-white px-3 py-2.5 text-xs font-semibold text-danger hover:bg-danger-bg transition-colors"
+                      >
+                        삭제
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {/* 맨 아래: 저장 */}
+            <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
               {resumeMessage && (
                 <p className="text-xs font-medium text-brand">
                   {resumeMessage}
@@ -592,7 +703,7 @@ function Mypage() {
               )}
               <button
                 type="button"
-                onClick={saveResume}
+                onClick={resumeMode === "pdf" ? savePdf : saveResume}
                 className="rounded-xl bg-brand px-6 py-3 text-sm font-bold text-white hover:bg-brand-hover transition-colors"
               >
                 저장
@@ -656,9 +767,7 @@ function Mypage() {
                       key={i}
                       className="rounded-xl bg-gray-50 p-4 space-y-1.5 text-sm border border-gray-100"
                     >
-                      <p className="font-bold text-gray-900">
-                        Q. {d.question}
-                      </p>
+                      <p className="font-bold text-gray-900">Q. {d.question}</p>
                       <p className="text-gray-700">
                         A. {d.answer ?? "(답변 없음)"}
                       </p>

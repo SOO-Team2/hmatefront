@@ -16,7 +16,7 @@ function Home() {
         </span>
         <h1 className="text-4xl sm:text-5xl font-black text-gray-900 leading-[1.22] tracking-tight mb-4">
           자기소개서부터 면접까지,<br/>
-          합격메이트와 함께 준비해요
+          합격 메이트와 함께 준비해요
         </h1>
         <p className="text-base sm:text-lg text-gray-600">
           내가 쓴 문장으로 예상 면접 질문을 뽑아 드려요.
