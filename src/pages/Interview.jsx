@@ -179,9 +179,13 @@ function Interview() {
             </label>
             <div className="row flex items-center gap-2">
               {clFile ? (
-                <span className="truncate rounded-xl border border-brand-border bg-brand-light px-3 py-2.5 text-xs font-semibold text-brand">
+                  <button
+    type="button"
+    onClick={() => setShowClModal(true)}
+               className="truncate rounded-xl border border-brand-border bg-brand-light px-3 py-2.5 text-xs font-semibold text-brand">
                   {clFile.name}
-                </span>
+                   </button>
+          
               ) : myCl ? (
                 // 고른 자소서 제목: 누르면 모달을 다시 열어 바꿀 수 있다
                 <button
@@ -207,7 +211,7 @@ function Interview() {
                 onChange={(e) => pdfSelect(e, "cl")}
               />
               {/* 자소서를 고르기 전에만 보인다 */}
-              {!myCl && (
+              {!clFile && !myCl && (
                 <button
                   type="button"
                   onClick={() => setShowClModal(true)}
@@ -441,21 +445,6 @@ function Interview() {
               </div>
             ),
           )}
-          <div
-            id="warn-box"
-            className="rounded-2xl border border-warn-border bg-warn-bg p-4 space-y-1 text-warn-text"
-          >
-            <div className="flex items-center gap-2">
-              <span>⚠️</span>
-              <h4 className="text-sm font-extrabold">
-                서류와 다른 부분이 있어요
-              </h4>
-            </div>
-            <p className="text-xs pl-6">
-              자기소개서 <span className="font-extrabold">팀원 4명</span> · 답변{" "}
-              <span className="font-extrabold">팀원 6명</span>
-            </p>
-          </div>
         </div>
         <div
           id="chat-input"
@@ -475,7 +464,13 @@ function Interview() {
         </div>
       </div>
       {showClModal && (
-        <ClModal onClose={() => setShowClModal(false)} onSelect={setMyCl} />
+        <ClModal
+          onClose={() => setShowClModal(false)}
+          onSelect={(cl) => {
+            setMyCl(cl);
+            setClFile(null);
+          }}
+        />
       )}
       {showResumeModal && (
         <ResumeModal
