@@ -8,7 +8,7 @@ import Modal from "./Modal";
 // FastAPI 백엔드 주소 (환경변수가 없으면 기본 로컬 서버 사용)
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
-function LoginModal({ isOpen = true, onClose, onSuccess, onSwitchToSignup }) {
+function LoginModal({ onClose, onSwitchToSignup }) {
   const navigate = useNavigate();
   // ---------------------------------------------------------------------------
   // 2. 입력값 및 상태 관리
@@ -21,9 +21,6 @@ function LoginModal({ isOpen = true, onClose, onSuccess, onSwitchToSignup }) {
   const [loading, setLoading] = useState(false);
   // 로그인 실패 시 화면에 띄울 오류 메시지
   const [errorMessage, setErrorMessage] = useState("");
-
-  // 모달이 닫힌 상태라면 화면에 아무것도 렌더링하지 않음
-  if (!isOpen) return null;
 
   // ---------------------------------------------------------------------------
   // 3. 백엔드 로그인 API 호출
@@ -76,12 +73,7 @@ function LoginModal({ isOpen = true, onClose, onSuccess, onSwitchToSignup }) {
       // 3. 다른 컴포넌트(Header, Cl 등)가 로그인 상태 변경을 바로 감지할 수 있도록 이벤트 발생
       window.dispatchEvent(new Event("authChange"));
 
-      // 4. 부모 컴포넌트가 전달한 onSuccess 콜백이 있다면 실행 (결과 데이터 전달)
-      if (onSuccess) {
-        onSuccess(data);
-      }
-
-      // 5. 로그인 성공 후 모달 닫기
+      // 4. 로그인 성공 후 모달 닫기
       if (onClose) {
         onClose();
       }
@@ -184,7 +176,6 @@ function LoginModal({ isOpen = true, onClose, onSuccess, onSwitchToSignup }) {
         <button
           type="button"
           onClick={() => {
-            if (onClose) onClose();
             if (onSwitchToSignup) onSwitchToSignup();
           }}
           className="w-full rounded-xl border border-brand bg-white py-3.5 text-base font-bold text-brand hover:bg-brand-soft transition-colors"

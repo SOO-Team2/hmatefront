@@ -7,7 +7,7 @@ import Modal from "./Modal";
 // FastAPI 백엔드 주소 (환경변수가 없으면 기본 로컬 서버 사용)
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
-function SignupModal({ isOpen = true, onClose, onSwitchToLogin, onSwitch, onSuccess }) {
+function SignupModal({ onClose, onSwitchToLogin }) {
   // ---------------------------------------------------------------------------
   // 2. 입력값 및 체크박스 상태 관리
   // ---------------------------------------------------------------------------
@@ -31,9 +31,6 @@ function SignupModal({ isOpen = true, onClose, onSwitchToLogin, onSwitch, onSucc
   const [idChecking, setIdChecking] = useState(false);
   const [isIdChecked, setIsIdChecked] = useState(false); // 중복 확인 통과 여부
   const [idCheckMessage, setIdCheckMessage] = useState(""); // 중복 확인 결과 메시지
-
-  // 모달이 닫힌 상태라면 화면에 아무것도 그리지 않음
-  if (!isOpen) return null;
 
   // ---------------------------------------------------------------------------
   // 3. 아이디 중복 확인 API 호출 (/auth/check-id)
@@ -163,15 +160,9 @@ function SignupModal({ isOpen = true, onClose, onSwitchToLogin, onSwitch, onSucc
       // [가입 성공 처리]
       setSuccessMessage("회원가입이 완료되었습니다! 로그인 창으로 이동합니다.");
 
-      if (onSuccess) {
-        onSuccess(data);
-      }
-
       // 가입 성공 안내 후 1.2초 뒤에 로그인 모달로 자동 전환
       setTimeout(() => {
-        if (onClose) onClose();
         if (onSwitchToLogin) onSwitchToLogin();
-        else if (onSwitch) onSwitch();
       }, 1200);
 
     } catch {
@@ -192,9 +183,7 @@ function SignupModal({ isOpen = true, onClose, onSwitchToLogin, onSwitch, onSucc
         <button
           type="button"
           onClick={() => {
-            if (onClose) onClose();
             if (onSwitchToLogin) onSwitchToLogin();
-            else if (onSwitch) onSwitch();
           }}
           className="text-sm text-gray-500 hover:text-gray-800 mb-3 inline-flex items-center gap-1 font-medium"
         >
