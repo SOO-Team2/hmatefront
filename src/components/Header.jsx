@@ -2,12 +2,15 @@ import { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router";
 import LoginModal from "./modals/LoginModal";
 import SignupModal from "./modals/SignupModal";
+import FindAccountModal from "./modals/FindAccountModal";
 
 // 모든 페이지 맨 위에 보이는 공통 헤더 (App.jsx에서 <Routes> 바깥에 둠)
 function Header() {
-  // 지금 띄워 둔 모달: null = 없음, "login" = 로그인, "signup" = 회원가입
+  // 지금 띄워 둔 모달: null = 없음, "login" = 로그인, "signup" = 회원가입, "find" = 계정찾기
   // (모달이 동시에 두 개 뜨는 일이 없어서 값 하나로 관리)
   const [modal, setModal] = useState(null);
+  // 계정 찾기 모달의 기본 탭: "id" = 아이디 찾기, "pw" = 비밀번호 재설정
+  const [findTab, setFindTab] = useState("id");
   // 로그인했는지: 저장된 토큰이 있으면 로그인 상태
   const [loggedIn, setLoggedIn] = useState(
     localStorage.getItem("access_token") !== null,
@@ -114,13 +117,23 @@ function Header() {
         <LoginModal
           onClose={() => setModal(null)}
           onSwitchToSignup={() => setModal("signup")}
+          onSwitchToFind={(tab) => {
+            setFindTab(tab);
+            setModal("find");
+          }}
         />
       )}
       {modal === "signup" && (
         <SignupModal
           onClose={() => setModal(null)}
           onSwitchToLogin={() => setModal("login")}
-          onSwitch={() => setModal("login")}
+        />
+      )}
+      {modal === "find" && (
+        <FindAccountModal
+          initialTab={findTab}
+          onClose={() => setModal(null)}
+          onSwitchToLogin={() => setModal("login")}
         />
       )}
     </header>
