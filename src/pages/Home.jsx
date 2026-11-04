@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Link } from "react-router"
 import LoginModal from "../components/modals/LoginModal"
 import SignupModal from "../components/modals/SignupModal"
@@ -6,6 +6,19 @@ import SignupModal from "../components/modals/SignupModal"
 function Home() {
   // 지금 띄워 둔 모달: null = 없음, "login" = 로그인, "signup" = 회원가입
   const [modal, setModal] = useState(null)
+
+  // 첫화면 로드시 로그인 여부 확인
+  const [loggedIn, setLoggedIn] = useState( 
+    localStorage.getItem("access_token") !== null
+  )
+
+  // 로그인/로그아웃 실시간 감지
+  useEffect(() => {
+    const update = () =>
+      setLoggedIn(localStorage.getItem("access_token") !== null)
+    window.addEventListener("authChange", update)
+    return () => window.removeEventListener("authChange", update)
+  }, [])
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-12 space-y-8">
@@ -53,21 +66,22 @@ function Home() {
         </div>
       </section>
 
-      {/* 3. 맛보기 체험 섹션 */}
+      {/* 3. 시작하기 / 체험 섹션 */}
       <section className="rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-2xs">
         <h2 className="text-lg font-extrabold text-gray-900 mb-5">
-          회원가입 없이 체험해 보세요
+          {/* loggedIn ? "로그인 상태" : "비로그인 상태*/}
+          {loggedIn ? "클릭 한 번으로 바로 시작해 보세요" : "회원가입 없이 체험해 보세요"}
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* 자기소개서 체험 */}
+          {/* 자기소개서 */}
           <div className="rounded-2xl border border-gray-200 bg-white p-5 flex flex-col justify-between gap-4">
             <div>
               <h3 className="text-base font-extrabold text-gray-900">
-                자기소개서 체험
+                {loggedIn ? "자기소개서" : "자기소개서 체험"}
               </h3>
               <p className="text-xs text-gray-500 mt-0.5">
-                문장 다듬기 최대 200자
+                {loggedIn ? "제목 추천 · AI 첨삭 · 맞춤법 검사" : "문장 다듬기 최대 200자"}
               </p>
             </div>
             <Link to="/cl" className="block">
@@ -75,18 +89,20 @@ function Home() {
                 type="button"
                 className="w-full rounded-xl border border-brand bg-white py-3 text-sm font-bold text-brand hover:bg-brand-soft transition-colors"
               >
-                자기소개서 다듬기
+                {loggedIn ? "자기소개서 작성하기" : "자기소개서 다듬기"}
               </button>
             </Link>
           </div>
 
-          {/* 면접 체험 */}
+          {/* 면접 */}
           <div className="rounded-2xl border border-gray-200 bg-white p-5 flex flex-col justify-between gap-4">
             <div>
               <h3 className="text-base font-extrabold text-gray-900">
-                면접 체험
+                {loggedIn ? "AI 면접" : "면접 체험"}
               </h3>
-              <p className="text-xs text-gray-500 mt-0.5">꼬리 질문 1회</p>
+              <p className="text-xs text-gray-500 mt-0.5">
+                {loggedIn ? "이력서·자소서 기반으로 한 꼬리 질문" : "꼬리 질문 1회"}
+              </p>
             </div>
             <Link to="/interview" className="block">
               <button
@@ -119,7 +135,7 @@ function Home() {
       {modal === "login" && (
         <LoginModal
           onClose={() => setModal(null)}
-          onSwitchToSignup={() => setModal("signup")} //로그인화면에서 회원가입으로 이동
+          onSwitchToSignup={() => setModal("signup")} // 로그인화면에서 회원가입으로 이동
         />
       )}
       {modal === "signup" && (
