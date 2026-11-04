@@ -2,10 +2,13 @@ import { useEffect, useState } from "react"
 import { Link } from "react-router"
 import LoginModal from "../components/modals/LoginModal"
 import SignupModal from "../components/modals/SignupModal"
+import FindAccountModal from "../components/modals/FindAccountModal"
 
 function Home() {
-  // 지금 띄워 둔 모달: null = 없음, "login" = 로그인, "signup" = 회원가입
+  // 지금 띄워 둔 모달: null = 없음, "login" = 로그인, "signup" = 회원가입, "find" = 계정찾기
   const [modal, setModal] = useState(null)
+  // 계정 찾기 모달의 기본 탭: "id" = 아이디 찾기, "pw" = 비밀번호 재설정
+  const [findTab, setFindTab] = useState("id")
 
   // 첫화면 로드시 로그인 여부 확인
   const [loggedIn, setLoggedIn] = useState( 
@@ -69,7 +72,6 @@ function Home() {
       {/* 3. 시작하기 / 체험 섹션 */}
       <section className="rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-2xs">
         <h2 className="text-lg font-extrabold text-gray-900 mb-5">
-          {/* loggedIn ? "로그인 상태" : "비로그인 상태*/}
           {loggedIn ? "클릭 한 번으로 바로 시작해 보세요" : "회원가입 없이 체험해 보세요"}
         </h2>
 
@@ -136,12 +138,23 @@ function Home() {
         <LoginModal
           onClose={() => setModal(null)}
           onSwitchToSignup={() => setModal("signup")} // 로그인화면에서 회원가입으로 이동
+          onSwitchToFind={(tab) => {
+            setFindTab(tab);
+            setModal("find"); // 로그인 화면에서 계정(아이디/비밀번호) 찾기로 이동
+          }}
         />
       )}
       {modal === "signup" && (
         <SignupModal
           onClose={() => setModal(null)}
           onSwitchToLogin={() => setModal("login")} // 회원가입화면에서 로그인으로 이동
+        />
+      )}
+      {modal === "find" && (
+        <FindAccountModal
+          initialTab={findTab}
+          onClose={() => setModal(null)}
+          onSwitchToLogin={() => setModal("login")} // 계정찾기에서 로그인화면으로 이동
         />
       )}
     </div>

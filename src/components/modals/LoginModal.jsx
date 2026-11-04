@@ -8,7 +8,7 @@ import Modal from "./Modal";
 // FastAPI 백엔드 주소 (환경변수가 없으면 기본 로컬 서버 사용)
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
-function LoginModal({ onClose, onSwitchToSignup }) {
+function LoginModal({ onClose, onSwitchToSignup, onSwitchToFind }) {
   const navigate = useNavigate();
   // ---------------------------------------------------------------------------
   // 2. 입력값 및 상태 관리
@@ -157,12 +157,24 @@ function LoginModal({ onClose, onSwitchToSignup }) {
 
         {/* 아이디 찾기 | 비밀번호 찾기 */}
         <div className="flex items-center justify-center gap-3 text-sm text-gray-500 my-5">
-          <button type="button" className="hover:text-gray-800">
+          <button
+            type="button"
+            onClick={() => {
+              if (onSwitchToFind) onSwitchToFind("id");
+            }}
+            className="hover:text-gray-800 transition-colors cursor-pointer"
+          >
             아이디 찾기
           </button>
           <span className="text-gray-300">|</span>
-          <button type="button" className="hover:text-gray-800">
-            비밀번호 찾기
+          <button
+            type="button"
+            onClick={() => {
+              if (onSwitchToFind) onSwitchToFind("pw");
+            }}
+            className="hover:text-gray-800 transition-colors cursor-pointer"
+          >
+            비밀번호 재설정
           </button>
         </div>
 
