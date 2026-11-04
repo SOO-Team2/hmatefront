@@ -279,7 +279,7 @@ function FindAccountModal({ initialTab = "id", onClose, onSwitchToLogin }) {
                   <p className="text-sm font-bold text-gray-800 mb-1.5">새 비밀번호</p>
                   <input
                     type="password"
-                    placeholder="최소 4자 이상 입력"
+                    placeholder="새 비밀번호 입력"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     disabled={resetLoading}

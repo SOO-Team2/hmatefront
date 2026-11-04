@@ -174,7 +174,7 @@ function LoginModal({ onClose, onSwitchToSignup, onSwitchToFind }) {
             }}
             className="hover:text-gray-800 transition-colors cursor-pointer"
           >
-            비밀번호 찾기
+            비밀번호 재설정
           </button>
         </div>
 
