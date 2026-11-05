@@ -124,6 +124,7 @@ function Interview() {
   const [messages, setMessages] = useState([]); // 질문·답변
   const [evidences, setEvidences] = useState([]); // 근거 문장
   const [filenames, setFilenames] = useState([]); // 해시 파일명
+  const [isGenerating, setIsGenerating] = useState(false); // 질문 생성 중 여부
 
   const [showClModal, setShowClModal] = useState(false); // 자소서 모달 열림
   const [myCl, setMyCl] = useState(null); // 모달에서 고른 자소서
@@ -139,23 +140,30 @@ function Interview() {
 
   const askQuestion = async () => {
     setTitle(`${catMajor} > ${catMinor}`); //제목 변경
+    setIsGenerating(true);
 
-    const formData = new FormData();
-    formData.append("job", catMinor);
-    if (resumeFile) formData.append("resume", resumeFile);
-    else if (myResume) formData.append("resume_saved", myResume);
-    if (clFile) formData.append("cl", clFile);
-    else if (myCl) formData.append("cl_saved", myCl.text);
-    const res = await fetch("http://127.0.0.1:8000/question", {
-      method: "POST",
-      body: formData, //FormData는 headers 쓰면 안 됨
-    });
-    const data = await res.json();
-    setFilenames(data.filenames || []);
-    setEvidences([data.evidences || []]);
-    setMessages([
-      { type: "question", category: CATEGORIES[0], text: data.question },
-    ]);
+    try {
+      const formData = new FormData();
+      formData.append("job", catMinor);
+      if (resumeFile) formData.append("resume", resumeFile);
+      else if (myResume) formData.append("resume_saved", myResume);
+      if (clFile) formData.append("cl", clFile);
+      else if (myCl) formData.append("cl_saved", myCl.text);
+      const res = await fetch("http://127.0.0.1:8000/question", {
+        method: "POST",
+        body: formData, //FormData는 headers 쓰면 안 됨
+      });
+      const data = await res.json();
+      setFilenames(data.filenames || []);
+      setEvidences([data.evidences || []]);
+      setMessages([
+        { type: "question", category: CATEGORIES[0], text: data.question },
+      ]);
+    } catch {
+      // 질문 생성 실패 처리
+    } finally {
+      setIsGenerating(false);
+    }
   };
   // 답변과 서류를 비교해서, 결과를 그 답변 메시지에 붙인다
   const verifyAnswer = async (answerIndex, text) => {
@@ -180,6 +188,7 @@ function Interview() {
   };
 
   const submitAnswer = async (e) => {
+    if (isGenerating) return;
     const textarea = e.currentTarget.previousElementSibling;
     const text = textarea.value;
     if (!text.trim() || messages.at(-1)?.type !== "question") return;
@@ -191,21 +200,28 @@ function Interview() {
     const nextCategory = CATEGORIES[evidences.length];
     if (!nextCategory) return;
 
-    const res = await fetch("http://127.0.0.1:8000/answer", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        category: nextCategory,
-        job: title.split(" > ")[1],
-        filenames,
-      }),
-    });
-    const data = await res.json();
-    setEvidences((prev) => [...prev, data.evidences || []]);
-    setMessages((prev) => [
-      ...prev,
-      { type: "question", category: nextCategory, text: data.question },
-    ]);
+    setIsGenerating(true);
+    try {
+      const res = await fetch("http://127.0.0.1:8000/answer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          category: nextCategory,
+          job: title.split(" > ")[1],
+          filenames,
+        }),
+      });
+      const data = await res.json();
+      setEvidences((prev) => [...prev, data.evidences || []]);
+      setMessages((prev) => [
+        ...prev,
+        { type: "question", category: nextCategory, text: data.question },
+      ]);
+    } catch {
+      // 답변에 따른 다음 질문 생성 실패 처리
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
@@ -350,10 +366,11 @@ function Interview() {
           <div className="md:col-span-1 flex md:justify-end">
             <button
               type="button"
-              className="btn-main w-full md:w-auto whitespace-nowrap rounded-xl bg-brand px-4 py-2.5 text-xs font-bold text-white hover:bg-brand-hover transition-colors"
+              disabled={isGenerating}
+              className="btn-main w-full md:w-auto whitespace-nowrap rounded-xl bg-brand px-4 py-2.5 text-xs font-bold text-white hover:bg-brand-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={askQuestion}
             >
-              질문 생성
+              {isGenerating ? "생성 중…" : "질문 생성"}
             </button>
           </div>
         </div>
@@ -591,21 +608,53 @@ function Interview() {
               </div>
             ),
           )}
+
+          {/* AI 면접관 말풍선 */}
+          {isGenerating && (
+            <div className="flex items-start gap-3 animate-fadeIn">
+              <img
+                src="/interviewer.svg"
+                alt="면접관"
+                className="w-10 h-10 shrink-0 rounded-full animate-pulse"
+              />
+              <div className="msg-q max-w-[85%] rounded-2xl border border-brand/20 bg-brand-light/40 p-4 shadow-2xs space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="inline-block rounded-md bg-brand px-2.5 py-0.5 text-xs font-bold text-white">
+                    AI 면접관
+                  </span>
+                 
+                </div>
+                <div className="flex items-center gap-2 text-sm font-bold text-gray-800 pt-0.5">
+                  <svg className="animate-spin h-4 w-4 text-brand" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"> {/* 로딩 스피너 */}
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                  </svg>
+                  <span>질문 생성 중입니다...</span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
         <div
           id="chat-input"
           className="border-t border-gray-200 p-4 flex items-end gap-3 bg-white"
         >
           <textarea
-            placeholder="답변을 입력하세요"
-            className="flex-1 min-h-[84px] rounded-xl border border-gray-300 p-3.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15 resize-none"
+            placeholder={
+              isGenerating
+                ? "질문을 생성하고 있습니다. 잠시만 기다려 주세요..."
+                : "답변을 입력하세요"
+            }
+            disabled={isGenerating}
+            className="flex-1 min-h-[84px] rounded-xl border border-gray-300 p-3.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15 resize-none disabled:bg-gray-50 disabled:text-gray-400"
           ></textarea>
           <button
             type="button"
-            className="btn-main shrink-0 rounded-xl bg-brand px-5 py-3 text-sm font-bold text-white hover:bg-brand-hover transition-colors"
+            disabled={isGenerating || messages.length === 0}
+            className="btn-main shrink-0 rounded-xl bg-brand px-5 py-3 text-sm font-bold text-white hover:bg-brand-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={submitAnswer}
           >
-            전송
+            {isGenerating ? "생성 중…" : "전송"}
           </button>
         </div>
       </div>
