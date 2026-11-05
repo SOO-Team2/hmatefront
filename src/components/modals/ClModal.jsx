@@ -38,8 +38,8 @@ function ClModal({ onClose, onSelect }) {
   const pick = (cl) => {
     const text = [
       ["지원 동기", cl.motivation],
-      ["성장 과정", cl.growth],
-      ["성격의 장단점", cl.personality],
+      ["경험 및 역량", cl.experience],
+      ["인성 및 협업", cl.personality],
       ["입사 후 포부", cl.plan],
     ]
       .filter(([, body]) => body)
@@ -77,7 +77,7 @@ function ClModal({ onClose, onSelect }) {
           >
             <p className="text-sm font-extrabold text-gray-900">{cl.title}</p>
             <p className="text-xs text-gray-500 mt-1 truncate">
-              {cl.motivation || cl.growth || cl.personality || cl.plan}
+              {cl.motivation || cl.experience || cl.personality || cl.plan}
             </p>
           </button>
         ))}

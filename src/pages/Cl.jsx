@@ -17,7 +17,7 @@ function Cl() {
   // ---------------------------------------------------------------------------
 
   const [motivation, setMotivation] = useState("");
-  const [growth, setGrowth] = useState("");
+  const [experience, setExperience] = useState("");
   const [personality, setPersonality] = useState("");
   const [plan, setPlan] = useState("");
 
@@ -32,12 +32,12 @@ function Cl() {
   // 이 사용자의 글자 수 한도 # 조건 ? 참일_때_값 : 거짓일_때_값
   const LIMIT = isMember ? MEMBER_LIMIT : GUEST_LIMIT;
 
-  const total = (motivation + growth + personality + plan).length;
+  const total = (motivation + experience + personality + plan).length;
 
-  const values = { motivation, growth, personality, plan };
+  const values = { motivation, experience, personality, plan };
   const setters = {
     motivation: setMotivation,
-    growth: setGrowth,
+    experience: setExperience,
     personality: setPersonality,
     plan: setPlan,
   };
@@ -73,7 +73,7 @@ function Cl() {
       const res = await fetch(`${API_URL}/cl/title`, {
         method: "POST",
         headers: headers,
-        body: JSON.stringify({ motivation, growth, personality, plan }),
+        body: JSON.stringify({ motivation, experience, personality, plan }),
       });
       if (!res.ok) {
         setTitleError("제목을 불러오지 못했습니다.");
@@ -122,7 +122,7 @@ function Cl() {
         headers: headers,
         body: JSON.stringify({
           motivation,
-          growth,
+          experience,
           personality,
           plan,
         }),
@@ -188,7 +188,7 @@ function Cl() {
         // ③ /cl/save로
         method: "POST",
         headers: headers,
-        body: JSON.stringify({ title, motivation, growth, personality, plan }),
+        body: JSON.stringify({ title, motivation, experience, personality, plan }),
       });
       if (res.ok) {
         setSaveMessage("마이페이지에 저장했어요."); // ④ 성공
@@ -279,31 +279,31 @@ function Cl() {
         </div>
 
         <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-2.5">
-          <h2 className="text-sm font-extrabold text-gray-900">② 성장 과정</h2>
+          <h2 className="text-sm font-extrabold text-gray-900">② 경험 및 역량</h2>
           <textarea
-            placeholder="성장 과정을 작성해 주세요."
-            value={growth}
-            onChange={(e) => change("growth", e.target.value)}
+            placeholder="경험 및 역량을 작성해 주세요."
+            value={experience}
+            onChange={(e) => change("experience", e.target.value)}
             className="w-full min-h-[140px] rounded-xl border border-gray-200 p-4 text-sm leading-relaxed text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15 resize-y"
           ></textarea>
           <p className="text-xs text-gray-500">
             공백 포함{" "}
             <strong className="font-bold text-gray-900 mr-2">
-              {growth.length}자
+              {experience.length}자
             </strong>{" "}
             공백 제외{" "}
             <strong className="font-bold text-gray-900">
-              {count(growth)}자
+              {count(experience)}자
             </strong>
           </p>
         </div>
 
         <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-2.5">
           <h2 className="text-sm font-extrabold text-gray-900">
-            ③ 성격의 장단점
+            ③ 인성 및 협업
           </h2>
           <textarea
-            placeholder="성격의 장단점을 작성해 주세요."
+            placeholder="인성 및 협업을 작성해 주세요."
             value={personality}
             onChange={(e) => change("personality", e.target.value)}
             className="w-full min-h-[140px] rounded-xl border border-gray-200 p-4 text-sm leading-relaxed text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15 resize-y"

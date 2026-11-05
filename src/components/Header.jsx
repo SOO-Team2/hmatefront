@@ -31,6 +31,7 @@ function Header() {
     localStorage.removeItem("access_token");
     localStorage.removeItem("user");
     setLoggedIn(false);
+    window.dispatchEvent(new Event("authChange")); //로그아웃 시 홈 화면 교체
   };
 
   return (

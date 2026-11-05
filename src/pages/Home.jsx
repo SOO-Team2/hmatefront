@@ -10,15 +10,20 @@ function Home() {
   // 계정 찾기 모달의 기본 탭: "id" = 아이디 찾기, "pw" = 비밀번호 재설정
   const [findTab, setFindTab] = useState("id")
 
-  // 첫화면 로드시 로그인 여부 확인
-  const [loggedIn, setLoggedIn] = useState( 
+  // 로그인 여부 및 회원 정보 확인
+  const [loggedIn, setLoggedIn] = useState(
     localStorage.getItem("access_token") !== null
+  )
+  const [user, setUser] = useState(
+    JSON.parse(localStorage.getItem("user") || "null")
   )
 
   // 로그인/로그아웃 실시간 감지
   useEffect(() => {
-    const update = () =>
+    const update = () => {
       setLoggedIn(localStorage.getItem("access_token") !== null)
+      setUser(JSON.parse(localStorage.getItem("user") || "null"))
+    }
     window.addEventListener("authChange", update)
     return () => window.removeEventListener("authChange", update)
   }, [])
@@ -118,19 +123,29 @@ function Home() {
         </div>
       </section>
 
-      {/* 4. 하단 로그인 유도 배너 */}
-      <section className="rounded-2xl border-2 border-brand-border bg-white py-10 px-6 text-center shadow-2xs">
-        <h2 className="text-2xl font-extrabold text-gray-900 mb-5 tracking-tight">
-          지금 로그인하고 합격으로 한 발짝
-        </h2>
-        {/* 시작하기 버튼을 클릭하면 로그인 화면이 나옴 */}
-        <button
-          type="button"
-          onClick={() => setModal("login")}
-          className="rounded-xl bg-brand px-12 py-3.5 text-base font-bold text-white hover:bg-brand-hover transition-colors"
-        >
-          시작하기
-        </button>
+      {/* 4. 하단 배너 (로그인 시 마이페이지 / 비로그인 시 로그인 유도) */}
+      <section className="rounded-2xl border-2 border-brand-border bg-white py-15 px-6 text-center shadow-2xs">
+        {loggedIn ? (
+          <>
+            <h2 className="text-2xl font-extrabold text-gray-900 mb-2 tracking-tight">
+              {user?.id}님, 오늘도 합격을 향해 한 걸음 나아가 볼까요?
+            </h2>
+          </>
+        ) : (
+          <>
+            <h2 className="text-2xl font-extrabold text-gray-900 mb-5 tracking-tight">
+              지금 로그인하고 합격으로 한 발짝
+            </h2>
+            {/* 시작하기 버튼을 클릭하면 로그인 화면이 나옴 */}
+            <button
+              type="button"
+              onClick={() => setModal("login")}
+              className="rounded-xl bg-brand px-12 py-3.5 text-base font-bold text-white hover:bg-brand-hover transition-colors"
+            >
+              시작하기
+            </button>
+          </>
+        )}
       </section>
 
       {/* modal 상태에 따라 모달을 화면에 올림 */}

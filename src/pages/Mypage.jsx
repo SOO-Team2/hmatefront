@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router";
 
-const API_URL = "http://127.0.0.1:8000";
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
 const SECTIONS = [
   ["motivation", "지원 동기"],
-  ["growth", "성장 과정"],
-  ["personality", "성격의 장단점"],
+  ["experience", "경험 및 역량"],
+  ["personality", "인성 및 협업"],
   ["plan", "입사 후 포부"],
 ];
 // [칸 이름, 제목, 최대 글자 수, 필수인지]
@@ -109,7 +109,7 @@ function Mypage() {
     setEditForm({
       title: cl.title,
       motivation: cl.motivation ?? "",
-      growth: cl.growth ?? "",
+      experience: cl.experience ?? "",
       personality: cl.personality ?? "",
       plan: cl.plan ?? "",
     });

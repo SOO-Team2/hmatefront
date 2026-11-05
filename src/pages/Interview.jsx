@@ -2,6 +2,8 @@ import { useState } from "react";
 import ClModal from "../components/modals/ClModal";
 import ResumeModal from "../components/modals/ResumeModal";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+
 const CATEGORIES = [
   "지원 동기",
   "경험 및 역량",
@@ -149,7 +151,7 @@ function Interview() {
       else if (myResume) formData.append("resume_saved", myResume);
       if (clFile) formData.append("cl", clFile);
       else if (myCl) formData.append("cl_saved", myCl.text);
-      const res = await fetch("http://127.0.0.1:8000/question", {
+      const res = await fetch(`${API_URL}/question`, {
         method: "POST",
         body: formData, //FormData는 headers 쓰면 안 됨
       });
@@ -168,7 +170,7 @@ function Interview() {
   // 답변과 서류를 비교해서, 결과를 그 답변 메시지에 붙인다
   const verifyAnswer = async (answerIndex, text) => {
     try {
-      const res = await fetch("http://127.0.0.1:8000/verify", {
+      const res = await fetch(`${API_URL}/verify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ answer: text, filenames }),
@@ -215,7 +217,7 @@ function Interview() {
 
     setIsGenerating(true);
     try {
-      const res = await fetch("http://127.0.0.1:8000/answer", {
+      const res = await fetch(`${API_URL}/answer`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
