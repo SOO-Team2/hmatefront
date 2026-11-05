@@ -195,10 +195,23 @@ function Interview() {
     textarea.value = "";
 
     setMessages((prev) => [...prev, { type: "answer", text }]);
-    verifyAnswer(messages.length, text);
 
     const nextCategory = CATEGORIES[evidences.length];
-    if (!nextCategory) return;
+    if (!nextCategory) {
+      await verifyAnswer(messages.length, text); // 마지막 답변 검증하고
+      setTimeout(() => { // 1초 후 종료 인사
+        setMessages((prev) => [
+          ...prev,
+          {
+            type: "end",
+            text: "지원자님의 경험과 생각을 잘 들었습니다. 이것으로 면접을 마치겠습니다. 수고 많으셨습니다."
+          }
+        ]);
+      }, 1000);
+      return;
+    }
+
+    verifyAnswer(messages.length, text);
 
     setIsGenerating(true);
     try {
@@ -558,7 +571,7 @@ function Interview() {
         </div>
         <div id="chat-list" className="p-6 space-y-4 min-h-[360px]">
           {messages.map((msg, i) =>
-            msg.type === "question" ? (
+            msg.type === "question" || msg.type === "end" ? (
               <div key={i} className="flex items-start gap-3">
                 <img
                   src="/interviewer.svg"
@@ -566,9 +579,11 @@ function Interview() {
                   className="w-10 h-10 shrink-0 rounded-full"
                 />
                 <div className="msg-q max-w-[85%] rounded-2xl border border-gray-200 bg-white p-4 shadow-2xs space-y-2">
-                  <span className="inline-block rounded-md bg-brand px-2.5 py-0.5 text-xs font-bold text-white mr-1.5">
-                    {msg.category}
-                  </span>
+                  {msg.category && ( //면접 종료 시 배지 숨김
+                    <span className="inline-block rounded-md bg-brand px-2.5 py-0.5 text-xs font-bold text-white mr-1.5">
+                      {msg.category}
+                    </span>
+                  )}
                   {evidences[CATEGORIES.indexOf(msg.category)]?.length > 0 && (
                     <span className="inline-block rounded-md bg-brand-light px-2.5 py-0.5 text-xs font-bold text-brand">
                       근거 [{CATEGORIES.indexOf(msg.category) + 1}-1]
@@ -622,7 +637,7 @@ function Interview() {
                   <span className="inline-block rounded-md bg-brand px-2.5 py-0.5 text-xs font-bold text-white">
                     AI 면접관
                   </span>
-                 
+
                 </div>
                 <div className="flex items-center gap-2 text-sm font-bold text-gray-800 pt-0.5">
                   <svg className="animate-spin h-4 w-4 text-brand" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"> {/* 로딩 스피너 */}
