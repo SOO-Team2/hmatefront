@@ -72,7 +72,7 @@ function SignupModal({ onClose, onSwitchToLogin }) {
         setIsIdChecked(false);
       }
     } catch {
-      setIdCheckMessage("서버와 통신할 수 없습니다. 백엔드 서버를 확인해 주세요.");
+      setIdCheckMessage("서버에 연결할 수 없습니다. 서버가 켜져 있는지 확인해 주세요.");
       setIsIdChecked(false);
     } finally {
       setIdChecking(false);
@@ -167,7 +167,7 @@ function SignupModal({ onClose, onSwitchToLogin }) {
 
     } catch {
       // 서버 연결 실패 시
-      setErrorMessage("서버와 통신할 수 없습니다. 백엔드 서버가 켜져 있는지 확인해 주세요.");
+      setErrorMessage("서버에 연결할 수 없습니다. 서버가 켜져 있는지 확인해 주세요.");
     } finally {
       setLoading(false);
     }

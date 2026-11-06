@@ -79,7 +79,7 @@ function LoginModal({ onClose, onSwitchToSignup, onSwitchToFind }) {
       }
     } catch {
       // 백엔드 서버가 꺼져 있거나 네트워크 연결이 실패한 경우
-      setErrorMessage("서버와 통신할 수 없습니다. 백엔드 서버가 켜져 있는지 확인해 주세요.");
+      setErrorMessage("서버에 연결할 수 없습니다. 서버가 켜져 있는지 확인해 주세요.");
     } finally {
       setLoading(false);
     }
