@@ -95,7 +95,7 @@ function Mypage() {
       if (res.ok) setCls(cls.filter((cl) => cl.cl_id !== clId));
       else alert("삭제하지 못했습니다.");
     } catch {
-      alert("서버에 연결할 수 없습니다.");
+      alert("서버에 연결할 수 없습니다. 서버가 켜져 있는지 확인해 주세요.");
     }
   };
   // 수정 중인 자소서 번호 (null = 수정 중 아님)와 입력칸 값
@@ -130,7 +130,7 @@ function Mypage() {
         alert("저장하지 못했습니다. 제목은 1~200자로 입력해 주세요.");
       }
     } catch {
-      alert("서버에 연결할 수 없습니다.");
+      alert("서버에 연결할 수 없습니다. 서버가 켜져 있는지 확인해 주세요.");
     }
   };
 
@@ -152,7 +152,7 @@ function Mypage() {
         alert("대화를 불러오지 못했습니다.");
       }
     } catch {
-      alert("서버에 연결할 수 없습니다.");
+      alert("서버에 연결할 수 없습니다. 서버가 켜져 있는지 확인해 주세요.");
     }
   };
 
@@ -170,7 +170,7 @@ function Mypage() {
         );
       else alert("삭제하지 못했습니다.");
     } catch {
-      alert("서버에 연결할 수 없습니다.");
+      alert("서버에 연결할 수 없습니다. 서버가 켜져 있는지 확인해 주세요.");
     }
   };
 
@@ -197,7 +197,7 @@ function Mypage() {
         alert("변경하지 못했습니다.");
       }
     } catch {
-      alert("서버에 연결할 수 없습니다.");
+      alert("서버에 연결할 수 없습니다. 서버가 켜져 있는지 확인해 주세요.");
     }
   };
 
@@ -223,7 +223,7 @@ function Mypage() {
         alert("탈퇴하지 못했습니다.");
       }
     } catch {
-      alert("서버에 연결할 수 없습니다.");
+      alert("서버에 연결할 수 없습니다. 서버가 켜져 있는지 확인해 주세요.");
     }
   };
 
@@ -277,7 +277,7 @@ function Mypage() {
         setResumeMessage("저장하지 못했습니다.");
       }
     } catch {
-      setResumeMessage("서버에 연결할 수 없습니다.");
+      setResumeMessage("서버에 연결할 수 없습니다. 서버가 켜져 있는지 확인해 주세요.");
     }
   };
 
@@ -410,7 +410,7 @@ function Mypage() {
                       onClick={saveEdit}
                       className="rounded-xl bg-brand px-4 py-2 text-xs font-bold text-white hover:bg-brand-hover transition-colors"
                     >
-                      저장
+                      수정 내용 저장
                     </button>
                     <button
                       type="button"

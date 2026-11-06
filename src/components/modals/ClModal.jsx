@@ -33,7 +33,7 @@ function ClModal({ onClose, onSelect }) {
             : "",
         );
       } catch {
-        setMessage("서버에 연결할 수 없습니다.");
+        setMessage("서버에 연결할 수 없습니다. 서버가 켜져 있는지 확인해 주세요.");
       }
     };
     if (token) load();

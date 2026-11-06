@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 // ---------------------------------------------------------------------------
 // 설정
@@ -178,19 +178,61 @@ function Cl() {
   // 저장 중인지, 저장 결과 문구 (빈 글자 = 없음)
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
+  // 이미 저장한 자소서 번호 (null = 아직 저장 안 함)
+  const [savedId, setSavedId] = useState(null);
+  // 마지막으로 저장한 글 (지금 글과 다르면 저장 안 한 내용이 있는 것)
+  const [savedText, setSavedText] = useState("");
+  const currentText = title + motivation + experience + personality + plan;
+  const hasUnsaved = currentText !== savedText;
+
+  // 저장 안 한 글이 있으면 페이지를 떠나기 전에 경고한다
+  useEffect(() => {
+    if (!hasUnsaved) return;
+
+    // 메뉴·로고 링크를 누를 때
+    const onClick = (e) => {
+      const link = e.target.closest("a");
+      if (!link || link.pathname === window.location.pathname) return; // 링크가 아니거나 같은 페이지면 통과
+      if (!confirm("페이지를 이동할 경우 작성한 내용이 사라집니다.")) {
+        e.preventDefault(); // 취소를 누르면 이동을 막는다
+        e.stopPropagation();
+      }
+    };
+    // 새로고침하거나 탭을 닫을 때
+    const onUnload = (e) => e.preventDefault();
+
+    document.addEventListener("click", onClick, true); // true: 링크가 처리하기 전에 먼저 받는다
+    window.addEventListener("beforeunload", onUnload);
+    return () => {
+      document.removeEventListener("click", onClick, true);
+      window.removeEventListener("beforeunload", onUnload);
+    };
+  }, [hasUnsaved]);
 
   // "마이페이지에 저장" 버튼: 제목과 자소서 4칸을 서버에 보내 저장한다
   const save = async () => {
     setSaveMessage(""); // ① 지난 문구 지우기
     setSaving(true); // ② "저장 중" 켜기 → 버튼 꺼짐
-    try {
-      const res = await fetch(`${API_URL}/cl/save`, {
-        // ③ /cl/save로
-        method: "POST",
-        headers: headers,
-        body: JSON.stringify({ title, motivation, experience, personality, plan }),
-      });
+try {
+      // ③ 처음이면 새로 저장, 저장한 적 있으면 덮어쓰기
+      const res = await fetch(
+        savedId ? `${API_URL}/mypage/cl/${savedId}` : `${API_URL}/cl/save`,
+        {
+          method: savedId ? "PUT" : "POST",
+          headers: headers,
+          body: JSON.stringify({
+            title,
+            motivation,
+            experience,
+            personality,
+            plan,
+          }),
+        },
+      );
       if (res.ok) {
+        const data = await res.json();
+        setSavedId(data.cl_id); // 다음 저장은 이 번호에 덮어쓴다
+        setSavedText(currentText); // 지금 글을 "저장한 글"로 기억한다
         setSaveMessage("마이페이지에 저장했어요."); // ④ 성공
       } else if (res.status === 401) {
         setSaveMessage("로그인 후 저장할 수 있어요."); // ⑤ 로그인 안 함
@@ -207,7 +249,7 @@ function Cl() {
       setSaving(false); //  "저장 중" 끄기 → 버튼 다시 켜짐
     }
   };
-
+    
   // ---------------------------------------------------------------------------
   // 화면
   // ---------------------------------------------------------------------------
@@ -279,7 +321,9 @@ function Cl() {
         </div>
 
         <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-2.5">
-          <h2 className="text-sm font-extrabold text-gray-900">② 경험 및 역량</h2>
+          <h2 className="text-sm font-extrabold text-gray-900">
+            ② 경험 및 역량
+          </h2>
           <textarea
             placeholder="경험 및 역량을 작성해 주세요."
             value={experience}
@@ -370,7 +414,7 @@ function Cl() {
               disabled={saving || total === 0 || !title.trim()}
               className="rounded-xl border border-gray-300 bg-white px-5 py-3 text-sm font-semibold text-gray-800 hover:bg-gray-50 transition-colors disabled:opacity-50"
             >
-              마이페이지에 저장
+              {savedId ? "수정 내용 저장" : "마이페이지에 저장"}
             </button>
           </div>
         </div>

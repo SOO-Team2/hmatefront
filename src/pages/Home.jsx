@@ -88,7 +88,7 @@ function Home() {
                 {loggedIn ? "자기소개서" : "자기소개서 체험"}
               </h3>
               <p className="text-xs text-gray-500 mt-0.5">
-                {loggedIn ? "제목 추천 · AI 첨삭 · 맞춤법 검사" : "문장 다듬기 최대 200자"}
+                {loggedIn ? "제목 추천 · AI 첨삭 · 맞춤법 검사" : "문장 다듬기 최대 500자"}
               </p>
             </div>
             <Link to="/cl" className="block">
