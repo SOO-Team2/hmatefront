@@ -127,6 +127,7 @@ function Interview() {
   const [evidences, setEvidences] = useState([]); // 근거 문장
   const [filenames, setFilenames] = useState([]); // 해시 파일명
   const [isGenerating, setIsGenerating] = useState(false); // 질문 생성 중 여부
+  const [firstQuestion, setFirstQuestion] = useState(null); // 자기소개 뒤에 보여 줄 첫 질문
 
   const [showResumeModal, setShowResumeModal] = useState(false); // 이력서 모달 열림
   const [showClModal, setShowClModal] = useState(false); // 자기소개서 모달 열림
@@ -150,9 +151,16 @@ function Interview() {
       });
       const data = await res.json();
       setFilenames(data.filenames || []);
-      setEvidences([data.evidences || []]);
+      setEvidences([]);
+      setFirstQuestion({
+        text: data.question,
+        evidences: data.evidences || [],
+      });
       setMessages([
-        { type: "question", category: CATEGORIES[0], text: data.question },
+        {
+          type: "question",
+          text: `안녕하세요. 지원자님, 자기소개 부탁드립니다.`,
+        },
       ]);
     } catch {
       // 질문 생성 실패 처리
@@ -190,17 +198,28 @@ function Interview() {
     textarea.value = "";
 
     setMessages((prev) => [...prev, { type: "answer", text }]);
-
+    // 자기소개 답변이면 미리 만들어 둔 첫 질문을 보여 준다
+    if (firstQuestion) {
+      verifyAnswer(messages.length, text);
+      setEvidences([firstQuestion.evidences]);
+      setMessages((prev) => [
+        ...prev,
+        { type: "question", category: CATEGORIES[0], text: firstQuestion.text },
+      ]);
+      setFirstQuestion(null);
+      return;
+    }
     const nextCategory = CATEGORIES[evidences.length];
     if (!nextCategory) {
       await verifyAnswer(messages.length, text); // 마지막 답변 검증하고
-      setTimeout(() => { // 1초 후 종료 인사
+      setTimeout(() => {
+        // 1초 후 종료 인사
         setMessages((prev) => [
           ...prev,
           {
             type: "end",
-            text: "지원자님의 경험과 생각을 잘 들었습니다. 이것으로 면접을 마치겠습니다. 수고 많으셨습니다."
-          }
+            text: "지원자님의 경험과 생각을 잘 들었습니다. 이것으로 면접을 마치겠습니다. 수고 많으셨습니다.",
+          },
         ]);
       }, 1000);
       return;
@@ -369,31 +388,13 @@ function Interview() {
           <div className="q-list grid grid-cols-2 md:grid-cols-4 gap-3">
             <div
               className={`q-item rounded-xl border p-4 ${
-                messages[1]
-                  ? "border-brand-border bg-white"
-                  : "border-dashed border-gray-300 bg-white"
-              }`}
-            >
-              <span className="block text-sm font-extrabold text-gray-900">
-                ① 지원 동기
-              </span>
-              <p
-                className={`text-xs mt-1 font-bold ${
-                  messages[1] ? "text-brand" : "text-gray-400 font-medium"
-                }`}
-              >
-                {messages[1] ? "완료" : "미입력"}
-              </p>
-            </div>
-            <div
-              className={`q-item rounded-xl border p-4 ${
                 messages[3]
                   ? "border-brand-border bg-white"
                   : "border-dashed border-gray-300 bg-white"
               }`}
             >
               <span className="block text-sm font-extrabold text-gray-900">
-                ② 경험 및 역량
+                ① 지원 동기
               </span>
               <p
                 className={`text-xs mt-1 font-bold ${
@@ -411,7 +412,7 @@ function Interview() {
               }`}
             >
               <span className="block text-sm font-extrabold text-gray-900">
-                ③ 인성 및 협업
+                ② 경험 및 역량
               </span>
               <p
                 className={`text-xs mt-1 font-bold ${
@@ -429,7 +430,7 @@ function Interview() {
               }`}
             >
               <span className="block text-sm font-extrabold text-gray-900">
-                ④ 입사 후 포부
+                ③ 인성 및 협업
               </span>
               <p
                 className={`text-xs mt-1 font-bold ${
@@ -437,6 +438,24 @@ function Interview() {
                 }`}
               >
                 {messages[7] ? "완료" : "미입력"}
+              </p>
+            </div>
+            <div
+              className={`q-item rounded-xl border p-4 ${
+                messages[9]
+                  ? "border-brand-border bg-white"
+                  : "border-dashed border-gray-300 bg-white"
+              }`}
+            >
+              <span className="block text-sm font-extrabold text-gray-900">
+                ④ 입사 후 포부
+              </span>
+              <p
+                className={`text-xs mt-1 font-bold ${
+                  messages[9] ? "text-brand" : "text-gray-400 font-medium"
+                }`}
+              >
+                {messages[9] ? "완료" : "미입력"}
               </p>
             </div>
           </div>
@@ -581,7 +600,7 @@ function Interview() {
                     <div className="flex items-center gap-2">
                       <span>⚠️</span>
                       <h4 className="text-sm font-extrabold">
-                        {msg.mismatches[0].source}와 다른 부분이 있어요
+                      {[...new Set(msg.mismatches.map((item) => item.source))].join("·")}와 다른 부분이 있어요
                       </h4>
                     </div>
                     {msg.mismatches.map((item, j) => (
@@ -611,12 +630,29 @@ function Interview() {
                   <span className="inline-block rounded-md bg-brand px-2.5 py-0.5 text-xs font-bold text-white">
                     AI 면접관
                   </span>
-
                 </div>
                 <div className="flex items-center gap-2 text-sm font-bold text-gray-800 pt-0.5">
-                  <svg className="animate-spin h-4 w-4 text-brand" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"> {/* 로딩 스피너 */}
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                  <svg
+                    className="animate-spin h-4 w-4 text-brand"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    {" "}
+                    {/* 로딩 스피너 */}
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v8H4z"
+                    ></path>
                   </svg>
                   <span>질문 생성 중입니다...</span>
                 </div>
