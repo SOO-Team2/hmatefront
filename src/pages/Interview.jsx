@@ -127,6 +127,10 @@ function Interview() {
   const [evidences, setEvidences] = useState([]); // 근거 문장
   const [filenames, setFilenames] = useState([]); // 해시 파일명
   const [isGenerating, setIsGenerating] = useState(false); // 질문 생성 중 여부
+  // [꼬리질문/진행도 관리] 현재 진행 중인 카테고리 인덱스 (0: 지원 동기 ~ 3: 입사 후 포부)
+  const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0);
+  // [꼬리질문/진행도 관리] 답변이 완료된 카테고리 인덱스 목록 ([0, 1, ...])
+  const [completedCategories, setCompletedCategories] = useState([]);
 
   const [showResumeModal, setShowResumeModal] = useState(false); // 이력서 모달 열림
   const [showClModal, setShowClModal] = useState(false); // 자기소개서 모달 열림
@@ -136,6 +140,9 @@ function Interview() {
   const askQuestion = async () => {
     setTitle(`${catMajor} > ${catMinor}`); //제목 변경
     setIsGenerating(true);
+    // [꼬리질문/진행도 초기화] 새 질문 생성 시 1번째 카테고리(지원 동기)부터 시작
+    setCurrentCategoryIndex(0);
+    setCompletedCategories([]);
 
     try {
       const formData = new FormData();
@@ -152,7 +159,12 @@ function Interview() {
       setFilenames(data.filenames || []);
       setEvidences([data.evidences || []]);
       setMessages([
-        { type: "question", category: CATEGORIES[0], text: data.question },
+        {
+          type: "question",
+          category: CATEGORIES[0],
+          text: data.question,
+          isFollowup: false, // 첫 질문은 항상 메인 질문
+        },
       ]);
     } catch {
       // 질문 생성 실패 처리
@@ -189,33 +201,82 @@ function Interview() {
     if (!text.trim() || messages.at(-1)?.type !== "question") return;
     textarea.value = "";
 
+    const lastQuestionMsg = messages.at(-1); // 직전에 AI 면접관이 한 질문
+    const newAnswerIndex = messages.length;
     setMessages((prev) => [...prev, { type: "answer", text }]);
-
-    const nextCategory = CATEGORIES[evidences.length];
-    if (!nextCategory) {
-      await verifyAnswer(messages.length, text); // 마지막 답변 검증하고
-      setTimeout(() => { // 1초 후 종료 인사
-        setMessages((prev) => [
-          ...prev,
-          {
-            type: "end",
-            text: "지원자님의 경험과 생각을 잘 들었습니다. 이것으로 면접을 마치겠습니다. 수고 많으셨습니다."
-          }
-        ]);
-      }, 1000);
-      return;
-    }
-
-    verifyAnswer(messages.length, text);
+    verifyAnswer(newAnswerIndex, text);
 
     setIsGenerating(true);
     try {
+      const currentCategory =
+        lastQuestionMsg?.category || CATEGORIES[currentCategoryIndex];
+      const job = title.split(" > ")[1] || catMinor;
+
+      // [꼬리질문 판단] 직전 질문이 메인 질문인 경우(/followup API 호출)
+      // 백엔드에서 답변 내용을 분석해 꼬리질문이 필요한지 판단
+      if (!lastQuestionMsg?.isFollowup) {
+        const followupRes = await fetch(`${API_URL}/followup`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            category: currentCategory,
+            job,
+            question: lastQuestionMsg.text,
+            answer: text,
+            filenames,
+          }),
+        });
+
+        if (followupRes.ok) {
+          const followupData = await followupRes.json();
+          // 백엔드에서 꼬리질문 생성이 필요하다고 판단한 경우
+          if (followupData.is_followup && followupData.question) {
+            setMessages((prev) => [
+              ...prev,
+              {
+                type: "question",
+                category: currentCategory,
+                text: followupData.question,
+                isFollowup: true, // 꼬리질문 플래그 등록
+              },
+            ]);
+            return; // 카테고리를 넘기지 않고 꼬리질문 답변 대기
+          }
+        }
+      }
+
+      // [카테고리 완료] 꼬리질문이 불필요하거나, 이미 꼬리질문 답변을 마친 경우 현재 카테고리 완료
+      setCompletedCategories((prev) =>
+        prev.includes(currentCategoryIndex)
+          ? prev
+          : [...prev, currentCategoryIndex],
+      );
+
+      const nextCategoryIndex = currentCategoryIndex + 1;
+      const nextCategory = CATEGORIES[nextCategoryIndex];
+
+      // [면접 종료] 4개 카테고리(지원동기, 경험, 인성, 포부)를 모두 마쳤을 때
+      if (!nextCategory) {
+        setTimeout(() => {
+          setMessages((prev) => [
+            ...prev,
+            {
+              type: "end",
+              text: "지원자님의 경험과 생각을 잘 들었습니다. 이것으로 면접을 마치겠습니다. 수고 많으셨습니다.",
+            },
+          ]);
+        }, 1000);
+        return;
+      }
+
+      // [다음 카테고리 이동] 다음 카테고리 메인 질문 생성 (/answer API 호출)
+      setCurrentCategoryIndex(nextCategoryIndex);
       const res = await fetch(`${API_URL}/answer`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           category: nextCategory,
-          job: title.split(" > ")[1],
+          job,
           filenames,
         }),
       });
@@ -223,7 +284,12 @@ function Interview() {
       setEvidences((prev) => [...prev, data.evidences || []]);
       setMessages((prev) => [
         ...prev,
-        { type: "question", category: nextCategory, text: data.question },
+        {
+          type: "question",
+          category: nextCategory,
+          text: data.question,
+          isFollowup: false, // 새 카테고리의 메인 질문
+        },
       ]);
     } catch {
       // 답변에 따른 다음 질문 생성 실패 처리
@@ -366,10 +432,11 @@ function Interview() {
           <label className="block text-xs font-bold text-gray-700 mb-2.5">
             질문 항목
           </label>
+          {/* 꼬리질문 유무와 무관하게 각 카테고리가 완료(답변 제출)되었는지를 completedCategories로 판별 */}
           <div className="q-list grid grid-cols-2 md:grid-cols-4 gap-3">
             <div
               className={`q-item rounded-xl border p-4 ${
-                messages[1]
+                completedCategories.includes(0)
                   ? "border-brand-border bg-white"
                   : "border-dashed border-gray-300 bg-white"
               }`}
@@ -379,15 +446,17 @@ function Interview() {
               </span>
               <p
                 className={`text-xs mt-1 font-bold ${
-                  messages[1] ? "text-brand" : "text-gray-400 font-medium"
+                  completedCategories.includes(0)
+                    ? "text-brand"
+                    : "text-gray-400 font-medium"
                 }`}
               >
-                {messages[1] ? "완료" : "미입력"}
+                {completedCategories.includes(0) ? "완료" : "미입력"}
               </p>
             </div>
             <div
               className={`q-item rounded-xl border p-4 ${
-                messages[3]
+                completedCategories.includes(1)
                   ? "border-brand-border bg-white"
                   : "border-dashed border-gray-300 bg-white"
               }`}
@@ -397,15 +466,17 @@ function Interview() {
               </span>
               <p
                 className={`text-xs mt-1 font-bold ${
-                  messages[3] ? "text-brand" : "text-gray-400 font-medium"
+                  completedCategories.includes(1)
+                    ? "text-brand"
+                    : "text-gray-400 font-medium"
                 }`}
               >
-                {messages[3] ? "완료" : "미입력"}
+                {completedCategories.includes(1) ? "완료" : "미입력"}
               </p>
             </div>
             <div
               className={`q-item rounded-xl border p-4 ${
-                messages[5]
+                completedCategories.includes(2)
                   ? "border-brand-border bg-white"
                   : "border-dashed border-gray-300 bg-white"
               }`}
@@ -415,15 +486,17 @@ function Interview() {
               </span>
               <p
                 className={`text-xs mt-1 font-bold ${
-                  messages[5] ? "text-brand" : "text-gray-400 font-medium"
+                  completedCategories.includes(2)
+                    ? "text-brand"
+                    : "text-gray-400 font-medium"
                 }`}
               >
-                {messages[5] ? "완료" : "미입력"}
+                {completedCategories.includes(2) ? "완료" : "미입력"}
               </p>
             </div>
             <div
               className={`q-item rounded-xl border p-4 ${
-                messages[7]
+                completedCategories.includes(3)
                   ? "border-brand-border bg-white"
                   : "border-dashed border-gray-300 bg-white"
               }`}
@@ -433,10 +506,12 @@ function Interview() {
               </span>
               <p
                 className={`text-xs mt-1 font-bold ${
-                  messages[7] ? "text-brand" : "text-gray-400 font-medium"
+                  completedCategories.includes(3)
+                    ? "text-brand"
+                    : "text-gray-400 font-medium"
                 }`}
               >
-                {messages[7] ? "완료" : "미입력"}
+                {completedCategories.includes(3) ? "완료" : "미입력"}
               </p>
             </div>
           </div>
