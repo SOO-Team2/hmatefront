@@ -86,16 +86,16 @@ function Mypage() {
 
   // 삭제 버튼: 서버에서 지우고, 성공하면 화면 목록에서도 뺀다
   const deleteCl = async (clId) => {
-    if (!confirm("삭제하면 되돌릴 수 없어요. 삭제할까요?")) return;
+    if (!confirm("삭제 후에는 복구할 수 없습니다. 정말 삭제하시겠습니까?")) return;
     try {
       const res = await fetch(`${API_URL}/mypage/cl/${clId}`, {
         method: "DELETE",
         headers,
       });
       if (res.ok) setCls(cls.filter((cl) => cl.cl_id !== clId));
-      else alert("삭제하지 못했습니다.");
+      else alert("삭제 중 오류가 발생했습니다.");
     } catch {
-      alert("서버에 연결할 수 없습니다. 서버가 켜져 있는지 확인해 주세요.");
+      alert("서버에 연결할 수 없습니다");
     }
   };
   // 수정 중인 자소서 번호 (null = 수정 중 아님)와 입력칸 값
@@ -127,10 +127,10 @@ function Mypage() {
         setCls(cls.map((cl) => (cl.cl_id === editingId ? updated : cl)));
         setEditingId(null);
       } else {
-        alert("저장하지 못했습니다. 제목은 1~200자로 입력해 주세요.");
+        alert("저장 중 오류가 발생했습니다. 제목은 1~200자로 입력해 주세요.");
       }
     } catch {
-      alert("서버에 연결할 수 없습니다. 서버가 켜져 있는지 확인해 주세요.");
+      alert("서버에 연결할 수 없습니다.");
     }
   };
 
@@ -149,16 +149,16 @@ function Mypage() {
         setDialogues(data.dialogues);
         setOpenId(interviewId);
       } else {
-        alert("대화를 불러오지 못했습니다.");
+        alert("대화를 불러오는 중 오류가 발생했습니다.");
       }
     } catch {
-      alert("서버에 연결할 수 없습니다. 서버가 켜져 있는지 확인해 주세요.");
+      alert("서버에 연결할 수 없습니다.");
     }
   };
 
   // 면접 삭제 버튼: 서버에서 지우고, 성공하면 화면 목록에서도 뺀다
   const deleteInterview = async (interviewId) => {
-    if (!confirm("삭제하면 되돌릴 수 없어요. 삭제할까요?")) return;
+    if (!confirm("삭제 후에는 복구할 수 없습니다. 정말 삭제하시겠습니까?")) return;
     try {
       const res = await fetch(`${API_URL}/mypage/interview/${interviewId}`, {
         method: "DELETE",
@@ -168,9 +168,9 @@ function Mypage() {
         setInterviews(
           interviews.filter((iv) => iv.interview_id !== interviewId),
         );
-      else alert("삭제하지 못했습니다.");
+      else alert("삭제 중 오류가 발생했습니다.");
     } catch {
-      alert("서버에 연결할 수 없습니다. 서버가 켜져 있는지 확인해 주세요.");
+      alert("서버에 연결할 수 없습니다.");
     }
   };
 
@@ -194,10 +194,10 @@ function Mypage() {
           JSON.stringify({ ...user, save_agreed: data.save_agreed }),
         );
       } else {
-        alert("변경하지 못했습니다.");
+        alert("변경 중 오류가 발생했습니다.");
       }
     } catch {
-      alert("서버에 연결할 수 없습니다. 서버가 켜져 있는지 확인해 주세요.");
+      alert("서버에 연결할 수 없습니다.");
     }
   };
 
@@ -205,7 +205,7 @@ function Mypage() {
   const withdraw = async () => {
     if (
       !confirm(
-        "탈퇴하면 자소서·이력서·면접 기록이 모두 삭제되고 되돌릴 수 없어요. 탈퇴할까요?",
+        "탈퇴 시 모든 데이터가 삭제되며 복구할 수 없습니다. 정말 탈퇴하시겠습니까?",
       )
     )
       return;
@@ -220,10 +220,10 @@ function Mypage() {
         window.dispatchEvent(new Event("authChange"));
         navigate("/");
       } else {
-        alert("탈퇴하지 못했습니다.");
+        alert("탈퇴 중 오류가 발생했습니다.");
       }
     } catch {
-      alert("서버에 연결할 수 없습니다. 서버가 켜져 있는지 확인해 주세요.");
+      alert("서버에 연결할 수 없습니다.");
     }
   };
 
@@ -268,16 +268,16 @@ function Mypage() {
       });
       if (res.ok) {
         setResume(await res.json());
-        setResumeMessage("저장했어요.");
+        setResumeMessage("저장했습니다.");
       } else if (res.status === 422) {
         setResumeMessage(
           "이름·학교·전공은 꼭 입력하고, 자격증명은 비우지 말아 주세요.",
         );
       } else {
-        setResumeMessage("저장하지 못했습니다.");
+        setResumeMessage("저장 중 오류가 발생했습니다.");
       }
     } catch {
-      setResumeMessage("서버에 연결할 수 없습니다. 서버가 켜져 있는지 확인해 주세요.");
+      setResumeMessage("서버에 연결할 수 없습니다.");
     }
   };
 
@@ -288,7 +288,7 @@ function Mypage() {
       <main className="max-w-6xl mx-auto px-6 py-16">
         <div className="rounded-2xl border border-gray-200 bg-white p-12 text-center shadow-2xs">
           <p className="text-base font-bold text-gray-700">
-            로그인 후 이용할 수 있어요.
+            로그인 후 이용할 수 있습니다.
           </p>
         </div>
       </main>
@@ -335,7 +335,7 @@ function Mypage() {
                 : "text-gray-700 hover:bg-gray-100 font-medium"
             }`}
           >
-            면접 기록
+            면접 내역
           </button>
           <button
             type="button"
@@ -360,18 +360,20 @@ function Mypage() {
               <h2 className="text-2xl font-extrabold text-gray-900 tracking-tight">
                 자기소개서
               </h2>
-              <Link to="/cl">
-                <button
-                  type="button"
-                  className="text-sm font-bold text-brand hover:underline"
-                >
-                  새 자기소개서 작성 →
-                </button>
-              </Link>
+              {cls.length === 0 && (
+                <Link to="/cl">
+                  <button
+                    type="button"
+                    className="text-sm font-bold text-brand hover:underline"
+                  >
+                    자기소개서 작성하기 →
+                  </button>
+                </Link>
+              )}
             </div>
             {cls.length === 0 && (
               <p className="text-sm text-gray-500 py-10 text-center">
-                저장한 자기소개서가 없어요.
+                작성된 자기소개서가 없습니다.
               </p>
             )}
 
@@ -410,7 +412,7 @@ function Mypage() {
                       onClick={saveEdit}
                       className="rounded-xl bg-brand px-4 py-2 text-xs font-bold text-white hover:bg-brand-hover transition-colors"
                     >
-                      수정 내용 저장
+                      저장
                     </button>
                     <button
                       type="button"
@@ -604,18 +606,28 @@ function Mypage() {
           </section>
         )}
 
-        {/* 면접 기록 탭 */}
+        {/* 면접 내역 탭 */}
         {activeTab === "history" && (
           <section className="space-y-4">
-            <div>
+            <div className="flex items-center justify-between">
               <h2 className="text-2xl font-extrabold text-gray-900 tracking-tight">
-                면접 기록
+                면접 내역
               </h2>
+              {interviews.length === 0 && (
+                <Link to="/interview">
+                  <button
+                    type="button"
+                    className="text-sm font-bold text-brand hover:underline"
+                  >
+                    면접 시작하기 →
+                  </button>
+                </Link>
+              )}
             </div>
 
             {interviews.length === 0 && (
               <p className="text-sm text-gray-500 py-10 text-center">
-                면접 기록이 없어요.
+                진행된 면접 내역이 없습니다.
               </p>
             )}
 
@@ -691,17 +703,17 @@ function Mypage() {
                 onClick={toggleAgreement}
                 className="rounded-xl border border-gray-300 bg-white px-4 py-2 text-xs font-semibold text-gray-800 hover:bg-gray-50 transition-colors"
               >
-                동의 변경
+                변경
               </button>
             </div>
 
             <ul className="list-disc pl-5 space-y-2 text-sm text-gray-700">
               <li>
-                내 문서는 본인만 조회할 수 있어요. 다른 회원은 접근할 수 없어요.
+                모든 문서는 본인만 열람할 수 있으며, 타인에게 공개되지 않습니다.
               </li>
-              <li>문서를 삭제하면 DB에서 바로 삭제되며 되돌릴 수 없어요.</li>
+              <li>삭제한 문서는 즉시 영구 삭제되어 복구할 수 없습니다.</li>
               <li>
-                회원 탈퇴 시 자소서 · 이력서 · 문장 · 대화 기록이 모두 삭제돼요.
+                회원 탈퇴 시 이력서, 자기소개서, 면접 내역이 모두 삭제됩니다.
               </li>
             </ul>
 

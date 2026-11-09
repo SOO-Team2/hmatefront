@@ -458,7 +458,7 @@ function Interview() {
           <div className="q-list grid grid-cols-2 md:grid-cols-4 gap-3">
             <div
               className={`q-item rounded-xl border p-4 ${
-                completedCategories.includes(0)
+                messages.some((m) => m.category === CATEGORIES[0])
                   ? "border-brand-border bg-white"
                   : "border-dashed border-gray-300 bg-white"
               }`}
@@ -473,12 +473,12 @@ function Interview() {
                     : "text-gray-400 font-medium"
                 }`}
               >
-                {completedCategories.includes(0) ? "답변 완료" : "답변 전"}
+                {completedCategories.includes(0) ? "답변 완료" : "답변 대기"}
               </p>
             </div>
             <div
               className={`q-item rounded-xl border p-4 ${
-                completedCategories.includes(1)
+                messages.some((m) => m.category === CATEGORIES[1])
                   ? "border-brand-border bg-white"
                   : "border-dashed border-gray-300 bg-white"
               }`}
@@ -493,12 +493,12 @@ function Interview() {
                     : "text-gray-400 font-medium"
                 }`}
               >
-                {completedCategories.includes(1) ? "답변 완료" : "답변 전"}
+                {completedCategories.includes(1) ? "답변 완료" : "답변 대기"}
               </p>
             </div>
             <div
               className={`q-item rounded-xl border p-4 ${
-                completedCategories.includes(2)
+                messages.some((m) => m.category === CATEGORIES[2])
                   ? "border-brand-border bg-white"
                   : "border-dashed border-gray-300 bg-white"
               }`}
@@ -513,12 +513,12 @@ function Interview() {
                     : "text-gray-400 font-medium"
                 }`}
               >
-                {completedCategories.includes(2) ? "답변 완료" : "답변 전"}
+                {completedCategories.includes(2) ? "답변 완료" : "답변 대기"}
               </p>
             </div>
             <div
               className={`q-item rounded-xl border p-4 ${
-                completedCategories.includes(3)
+                messages.some((m) => m.category === CATEGORIES[3])
                   ? "border-brand-border bg-white"
                   : "border-dashed border-gray-300 bg-white"
               }`}
@@ -533,7 +533,7 @@ function Interview() {
                     : "text-gray-400 font-medium"
                 }`}
               >
-                {completedCategories.includes(3) ? "답변 완료" : "답변 전"}
+                {completedCategories.includes(3) ? "답변 완료" : "답변 대기"}
               </p>
             </div>
           </div>
@@ -701,14 +701,6 @@ function Interview() {
                       className="inline-block rounded-md px-2.5 py-0.5 text-xs font-bold mr-1.5 shadow-2xs"
                     >
                       꼬리 질문
-                    </span>
-                  )}
-                  {msg.type === "end" && (
-                    <span
-                      style={{ backgroundColor: "#4B5563", color: "#ffffff" }}
-                      className="inline-block rounded-md px-2.5 py-0.5 text-xs font-bold mr-1.5 shadow-2xs"
-                    >
-                      면접 종료
                     </span>
                   )}
                   {evidences[CATEGORIES.indexOf(msg.category)]?.length > 0 && (

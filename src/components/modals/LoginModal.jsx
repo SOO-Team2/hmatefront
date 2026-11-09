@@ -31,11 +31,11 @@ function LoginModal({ onClose, onSwitchToSignup, onSwitchToFind }) {
 
     // 입력값 유효성 검사 (빈 칸 확인)
     if (!userId.trim()) {
-      setErrorMessage("아이디를 입력해 주세요.");
+      setErrorMessage("아이디를 입력하세요.");
       return;
     }
     if (!password) {
-      setErrorMessage("비밀번호를 입력해 주세요.");
+      setErrorMessage("비밀번호를 입력하세요.");
       return;
     }
 
@@ -60,7 +60,7 @@ function LoginModal({ onClose, onSwitchToSignup, onSwitchToFind }) {
 
       if (!res.ok) {
         // 401(아이디/비번 불일치) 또는 서버 에러 발생 시
-        setErrorMessage(data.detail || "로그인에 실패했습니다.");
+        setErrorMessage(data.detail || "로그인 중 오류가 발생했습니다.");
         return;
       }
 
@@ -79,7 +79,7 @@ function LoginModal({ onClose, onSwitchToSignup, onSwitchToFind }) {
       }
     } catch {
       // 백엔드 서버가 꺼져 있거나 네트워크 연결이 실패한 경우
-      setErrorMessage("서버에 연결할 수 없습니다. 서버가 켜져 있는지 확인해 주세요.");
+      setErrorMessage("서버에 연결할 수 없습니다.");
     } finally {
       setLoading(false);
     }

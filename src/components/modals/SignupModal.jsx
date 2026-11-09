@@ -59,7 +59,7 @@ function SignupModal({ onClose, onSwitchToLogin }) {
       const data = await res.json();
 
       if (!res.ok) {
-        setIdCheckMessage(data.detail || "중복 확인에 실패했습니다.");
+        setIdCheckMessage(data.detail || "중복 확인 중 오류가 발생했습니다.");
         setIsIdChecked(false);
         return;
       }
@@ -72,7 +72,7 @@ function SignupModal({ onClose, onSwitchToLogin }) {
         setIsIdChecked(false);
       }
     } catch {
-      setIdCheckMessage("서버에 연결할 수 없습니다. 서버가 켜져 있는지 확인해 주세요.");
+      setIdCheckMessage("서버에 연결할 수 없습니다.");
       setIsIdChecked(false);
     } finally {
       setIdChecking(false);
@@ -153,7 +153,7 @@ function SignupModal({ onClose, onSwitchToLogin }) {
 
       if (!res.ok) {
         // 400(약관 미동의), 409(아이디 중복) 등 백엔드가 보낸 에러 메시지 표시
-        setErrorMessage(data.detail || "회원가입에 실패했습니다.");
+        setErrorMessage(data.detail || "회원가입 중 오류가 발생했습니다.");
         return;
       }
 
@@ -167,7 +167,7 @@ function SignupModal({ onClose, onSwitchToLogin }) {
 
     } catch {
       // 서버 연결 실패 시
-      setErrorMessage("서버에 연결할 수 없습니다. 서버가 켜져 있는지 확인해 주세요.");
+      setErrorMessage("서버에 연결할 수 없습니다.");
     } finally {
       setLoading(false);
     }

@@ -11,7 +11,7 @@ function ResumeModal({ onClose, onSelect, selectedPdf, selectedResume }) {
   // 저장된 토큰. 없으면 처음부터 로그인 안내를 보여 준다
   const token = localStorage.getItem("access_token");
   const [message, setMessage] = useState(
-    token ? "불러오는 중" : "로그인하면 저장한 이력서를 불러올 수 있어요.",
+    token ? "불러오는 중" : "로그인 후 이용할 수 있습니다.",
   );
 
   // 모달이 열리면 내 이력서 불러옴
@@ -23,13 +23,13 @@ function ResumeModal({ onClose, onSelect, selectedPdf, selectedResume }) {
         });
         const data = res.ok ? await res.json() : null;
         if (!data?.name) {
-          setMessage("저장한 이력서가 없어요.");
+          setMessage("작성된 이력서가 없습니다.");
           return;
         }
         setResume(data);
         setMessage("");
       } catch {
-        setMessage("서버에 연결할 수 없습니다. 서버가 켜져 있는지 확인해 주세요.");
+        setMessage("서버에 연결할 수 없습니다.");
       }
     };
     if (token) load();
@@ -144,7 +144,7 @@ function ResumeModal({ onClose, onSelect, selectedPdf, selectedResume }) {
                 : "font-medium text-gray-600"
             }`}
           >
-            {selectedPdf ? selectedPdf.name : "파일을 선택해 주세요 (.pdf)"}
+            {selectedPdf ? selectedPdf.name : "파일을 업로드하세요 (.pdf)"}
           </span>
           <span className="shrink-0 rounded-lg border border-brand bg-white px-3 py-1.5 text-xs font-bold text-brand">
             내 PC

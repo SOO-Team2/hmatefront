@@ -65,7 +65,7 @@ function FindAccountModal({ initialTab = "id", onClose, onSwitchToLogin }) {
       setFoundId(data.id);
     } catch {
 
-      setFindIdError("서버에 연결할 수 없습니다. 서버가 켜져 있는지 확인해 주세요.");
+      setFindIdError("서버에 연결할 수 없습니다.");
     } finally {
       setFindIdLoading(false);
     }
@@ -116,13 +116,13 @@ function FindAccountModal({ initialTab = "id", onClose, onSwitchToLogin }) {
       const data = await res.json();
 
       if (!res.ok) {
-        setResetError(data.detail || "비밀번호 변경에 실패했습니다.");
+        setResetError(data.detail || "비밀번호 변경 중 오류가 발생했습니다.");
         return;
       }
 
-      setResetSuccess(data.message || "비밀번호가 성공적으로 변경되었습니다.");
+      setResetSuccess(data.message || "비밀번호가 변경되었습니다.");
     } catch {
-      setResetError("서버에 연결할 수 없습니다. 서버가 켜져 있는지 확인해 주세요.");
+      setResetError("서버에 연결할 수 없습니다.");
     } finally {
       setResetLoading(false);
     }
@@ -139,7 +139,7 @@ function FindAccountModal({ initialTab = "id", onClose, onSwitchToLogin }) {
           }}
           className="text-sm text-gray-500 hover:text-gray-800 mb-3 inline-flex items-center gap-1 font-medium"
         >
-          ← 로그인으로 돌아가기
+          ← 로그인
         </button>
 
         {/* 탭 네비게이션 */}
@@ -176,7 +176,7 @@ function FindAccountModal({ initialTab = "id", onClose, onSwitchToLogin }) {
             {!foundId ? (
               <form onSubmit={handleFindId} className="space-y-4">
                 <p className="text-xs text-gray-500 mb-4">
-                  회원가입 시 등록하셨던 이메일 주소를 입력하시면 아이디를 확인하실 수 있습니다.
+                  회원가입에 사용한 이메일 주소를 입력해 주세요.
                 </p>
 
                 <div>
@@ -248,7 +248,7 @@ function FindAccountModal({ initialTab = "id", onClose, onSwitchToLogin }) {
             {!resetSuccess ? (
               <form onSubmit={handleResetPassword} className="space-y-4">
                 <p className="text-xs text-gray-500 mb-4">
-                  아이디와 가입 시 등록한 이메일을 인증한 뒤 새 비밀번호로 변경할 수 있습니다.
+                  가입한 아이디와 이메일을 인증한 후 새 비밀번호를 입력해 주세요.
                 </p>
 
                 <div>
@@ -312,18 +312,18 @@ function FindAccountModal({ initialTab = "id", onClose, onSwitchToLogin }) {
                   disabled={resetLoading || !resetId.trim() || !resetEmail.trim() || !newPassword}
                   className="w-full rounded-xl bg-brand py-3.5 text-base font-bold text-white hover:bg-brand-hover transition-colors disabled:opacity-50 mt-2"
                 >
-                  {resetLoading ? "변경 중…" : "비밀번호 변경하기"}
+                  {resetLoading ? "변경 중" : "비밀번호 변경하기"}
                 </button>
               </form>
             ) : (
               <div className="space-y-5 text-center py-4">
                 <div className="rounded-2xl bg-brand-light/60 border border-brand/20 p-5">
                   <p className="text-base font-bold text-brand mb-1">
-                    비밀번호 변경 완료!
+                    비밀번호 변경 완료
                   </p>
                   <p className="text-xs text-gray-600">
-                    새로운 비밀번호로 정상 변경되었습니다.<br />
-                    새 비밀번호로 다시 로그인해 주세요.
+                    비밀번호 재설정이 완료되었습니다.<br />
+                    새로운 비밀번호로 로그인해 주세요.
                   </p>
                 </div>
 

@@ -11,7 +11,7 @@ function ClModal({ onClose, onSelect, selectedPdf, selectedCl }) {
   // 저장된 토큰. 없으면 처음부터 로그인 안내를 보여 준다
   const token = localStorage.getItem("access_token");
   const [message, setMessage] = useState(
-    token ? "불러오는 중" : "로그인 후 이용할 수 있어요.",
+    token ? "불러오는 중" : "로그인 후 이용할 수 있습니다.",
   );
 
   // 모달이 열리면 한 번 내 자소서를 불러온다 ( /mypage/cl)
@@ -22,18 +22,18 @@ function ClModal({ onClose, onSelect, selectedPdf, selectedCl }) {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!res.ok) {
-          setMessage("목록을 불러오지 못했습니다.");
+          setMessage("목록을 불러오는 중 오류가 발생했습니다.");
           return;
         }
         const data = await res.json();
         setCls(data);
         setMessage(
           data.length === 0
-            ? "저장한 자기소개서가 없어요."
+            ? "작성된 자기소개서가 없습니다."
             : "",
         );
       } catch {
-        setMessage("서버에 연결할 수 없습니다. 서버가 켜져 있는지 확인해 주세요.");
+        setMessage("서버에 연결할 수 없습니다.");
       }
     };
     if (token) load();
@@ -151,7 +151,7 @@ function ClModal({ onClose, onSelect, selectedPdf, selectedCl }) {
                 : "font-medium text-gray-600"
             }`}
           >
-            {selectedPdf ? selectedPdf.name : "파일을 선택해 주세요 (.pdf)"}
+            {selectedPdf ? selectedPdf.name : "파일을 업로드하세요 (.pdf)"}
           </span>
           <span className="shrink-0 rounded-lg border border-brand bg-white px-3 py-1.5 text-xs font-bold text-brand">
             내 PC

@@ -76,14 +76,14 @@ function Cl() {
         body: JSON.stringify({ motivation, experience, personality, plan }),
       });
       if (!res.ok) {
-        setTitleError("제목을 불러오지 못했습니다.");
+        setTitleError("제목을 불러오는 중 오류가 발생했습니다.");
         return;
       }
       const data = await res.json(); // 서버의 답을 읽기
       setTitle(data.titles[0]); // 제목 칸에 넣기 → 화면에 보임
     } catch {
       setTitleError(
-        "서버에 연결할 수 없습니다. 서버가 켜져 있는지 확인해 주세요.",
+        "서버에 연결할 수 없습니다.",
       );
     } finally {
       setTitleLoading(false);
@@ -129,17 +129,17 @@ function Cl() {
       });
       // 서버 오류(400, 502 등)는 catch로 안 가서, res.ok로 직접 확인
       if (!res.ok) {
-        setError("결과를 불러오지 못했습니다.");
+        setError("결과를 불러오는 중 오류가 발생했습니다.");
         return;
       }
       const data = await res.json(); // 서버의 답을 읽기
       setFeedbacks(data.feedbacks); // 카드 목록에 넣기 → 패널에 카드가 보임
       if (data.warnings.length > 0) {
         // 빠진 결과가 있으면
-        setNotice("일부 결과는 기준을 통과하지 못해 제외했어요.");
+        setNotice("일부 결과는 기준을 통과하지 못해 제외했습니다.");
       }
     } catch {
-      setError("서버에 연결할 수 없습니다. 서버가 켜져 있는지 확인해 주세요.");
+      setError("서버에 연결할 수 없습니다.");
     } finally {
       // 성공이든 실패든 "기다리는 중" 끄기
       setLoading(false);
@@ -163,7 +163,7 @@ function Cl() {
     const next = current.replace(card.original, card.suggestion); // ③ 원문 → 수정안으로 바꾼 글
     if (!inLimit(card.section, next)) {
       // ④ 바꿔도 한도 안인가?
-      setError(`적용하면 글자 수 한도(${LIMIT}자)를 넘어요.`);
+      setError(`적용하면 글자 수 한도(${LIMIT}자)를 넘습니다.`);
       return;
     }
     setters[card.section](next); // ⑤ 그 칸에 반영
@@ -193,7 +193,7 @@ function Cl() {
     const onClick = (e) => {
       const link = e.target.closest("a");
       if (!link || link.pathname === window.location.pathname) return; // 링크가 아니거나 같은 페이지면 통과
-      if (!confirm("페이지를 이동할 경우 작성한 내용이 사라집니다.")) {
+      if (!confirm("저장되지 않은 내용이 있습니다. 페이지를 이동하시겠습니까?")) {
         e.preventDefault(); // 취소를 누르면 이동을 막는다
         e.stopPropagation();
       }
@@ -233,20 +233,21 @@ try {
         const data = await res.json();
         setSavedId(data.cl_id); // 다음 저장은 이 번호에 덮어쓴다
         setSavedText(currentText); // 지금 글을 "저장한 글"로 기억한다
-        setSaveMessage("마이페이지에 저장했어요."); // ④ 성공
+        setSaveMessage("저장됨"); // ④ 성공
       } else if (res.status === 401) {
-        setSaveMessage("로그인 후 저장할 수 있어요."); // ⑤ 로그인 안 함
+        setSaveMessage("로그인 후 저장할 수 있습니다."); // ⑤ 로그인 안 함
       } else {
-        setSaveMessage("저장하지 못했습니다."); // ⑥ 그 밖의 실패 (400, 500 등)
+        setSaveMessage("저장 중 오류가 발생했습니다."); // ⑥ 그 밖의 실패 (400, 500 등)
       }
     } catch {
       // ⑦ 연결 실패 (서버 꺼짐, 와이파이 다름)
       setSaveMessage(
-        "서버에 연결할 수 없습니다. 서버가 켜져 있는지 확인해 주세요.",
+        "서버에 연결할 수 없습니다.",
       );
     } finally {
       // ⑧ 성공이든 실패든 마지막에
       setSaving(false); //  "저장 중" 끄기 → 버튼 다시 켜짐
+      setTimeout(() => setSaveMessage(""), 3000);
     }
   };
     
@@ -261,7 +262,7 @@ try {
           자기소개서
         </h1>
         <span className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-4 py-1.5 text-xs font-medium text-gray-600 shadow-2xs">
-          {isMember ? "글자 수" : "비회원 맛보기"}{" "}
+          {isMember ? "전체 글자 수" : "비회원 글자 수"}{" "}
           <strong className="text-brand font-bold">
             {total} / {LIMIT}자
           </strong>
@@ -280,7 +281,7 @@ try {
           <div className="flex gap-2.5">
             <input
               type="text"
-              placeholder="제목을 입력하거나 '제목 추천'을 눌러보세요."
+              placeholder="제목을 입력하거나 제목 추천을 받아보세요."
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               maxLength={200}
@@ -291,8 +292,7 @@ try {
               onClick={askTitle}
               disabled={titleLoading || total === 0}
               className="shrink-0 rounded-xl border border-brand bg-white px-4 py-3 text-sm font-bold text-brand hover:bg-brand-soft transition-colors disabled:border-gray-200 disabled:text-gray-400 disabled:hover:bg-transparent"
-            >
-              {titleLoading ? "추천 중…" : "제목 추천"}
+            > 제목 추천
             </button>
           </div>
           {titleError && (
@@ -406,15 +406,14 @@ try {
           </div>
           <div className="flex items-center gap-3 ml-auto">
             {saveMessage && (
-              <p className="text-xs font-medium text-brand">{saveMessage}</p>
+              <p className="text-xs font-medium text-brand mr-2">{saveMessage}</p>
             )}
             <button
               type="button"
               onClick={save}
               disabled={saving || total === 0 || !title.trim()}
               className="rounded-xl border border-gray-300 bg-white px-5 py-3 text-sm font-semibold text-gray-800 hover:bg-gray-50 transition-colors disabled:opacity-50"
-            >
-              {savedId ? "수정 내용 저장" : "마이페이지에 저장"}
+            > 저장하기
             </button>
           </div>
         </div>
@@ -437,7 +436,7 @@ try {
 
           {loading && (
             <p className="text-sm text-gray-500 py-8 text-center">
-              결과를 만드는 중입니다…
+              작성하신 내용을 분석 중입니다.
             </p>
           )}
           {error && (
@@ -452,7 +451,7 @@ try {
           )}
           {!loading && !error && feedbacks.length === 0 && (
             <p className="text-sm text-gray-500 py-8 text-center">
-              남은 결과가 없습니다.
+              수정 사항이 없습니다.
             </p>
           )}
 

@@ -17,6 +17,13 @@ function Home() {
   const [user, setUser] = useState(
     JSON.parse(localStorage.getItem("user") || "null")
   )
+  // 하단 배너 문구 랜덤 선택
+  const [quoteIndex] = useState(() => Math.floor(Math.random() * 3))
+  const quotes = [
+    `${user?.id}님의 합격을 향해 오늘도 함께 달려볼까요?`,
+    `${user?.id}님의 빛나는 내일을 합격메이트가 응원합니다.`,
+    `${user?.id}님, 오늘도 목표를 향해 힘차게 시작해 보세요.`,
+  ]
 
   // 로그인/로그아웃 실시간 감지
   useEffect(() => {
@@ -29,66 +36,66 @@ function Home() {
   }, [])
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-12 space-y-12">
+    <div className="max-w-6xl mx-auto px-6 py-20 space-y-14">
       {/* 1. 메인 히어로 섹션 */}
       <section className="pt-2 pb-4">
-        <span className="inline-block rounded-full bg-brand-light px-3.5 py-1 text-xs font-bold text-brand mb-4">
+        <span className="inline-block rounded-full bg-brand-light px-3.5 py-1 text-xs font-bold text-brand mb-5">
           AI 합격 코치
         </span>
-        <h1 className="text-4xl sm:text-5xl font-black text-gray-900 leading-[1.22] tracking-tight mb-4">
+        <h1 className="text-4xl sm:text-5xl font-black text-gray-900 leading-[1.22] tracking-tight mb-8">
           자기소개서부터 면접까지,<br/>
           합격 메이트와 함께 준비해요
         </h1>
         <p className="text-base sm:text-lg text-gray-600">
-          작성한 문장으로 예상 면접 질문을 뽑아 드립니다.
+          나만의 자기소개서 완성부터 맞춤형 면접 질문까지 한곳에서
         </p>
       </section>
 
       {/* 2. 주요 기능 3가지 카드 */}
       <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-2xs">
-          <span className="block text-xs font-extrabold text-brand mb-2">
+          <span className="block text-xs font-extrabold text-brand mb-4">
             01 자기소개서
           </span>
           <h3 className="text-lg font-extrabold text-gray-900">
-            문장 다듬기 · 제목 추천 · 글자수
+            AI 첨삭 · 맞춤법 검사 · 제목 추천
           </h3>
         </div>
 
         <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-2xs">
-          <span className="block text-xs font-extrabold text-brand mb-2">
+          <span className="block text-xs font-extrabold text-brand mb-4">
             02 AI 면접
           </span>
           <h3 className="text-lg font-extrabold text-gray-900">
-            자기소개서 기반 질문
+            이력서 · 자기소개서 기반 질문
           </h3>
         </div>
 
         <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-2xs">
-          <span className="block text-xs font-extrabold text-brand mb-2">
+          <span className="block text-xs font-extrabold text-brand mb-4">
             03 답변 검증
           </span>
           <h3 className="text-lg font-extrabold text-gray-900">
-            서류와 면접 답변 분석
+            서류 내용과 답변 비교 · 검증
           </h3>
         </div>
       </section>
 
       {/* 3. 시작하기 / 체험 섹션 */}
       <section className="rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-2xs">
-        <h2 className="text-lg font-extrabold text-gray-900 mb-5">
-          {loggedIn ? "지금 바로 시작해 보세요" : "회원가입 없이 체험해 보세요"}
+        <h2 className="text-lg font-extrabold text-gray-900 mb-6">
+          {loggedIn ? "원하는 서비스를 선택하세요" : "로그인 없이 시작해 보세요"}
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* 자기소개서 */}
-          <div className="rounded-2xl border border-gray-200 bg-white p-5 flex flex-col justify-between gap-4">
+          <div className="rounded-2xl border border-gray-200 bg-white p-5 flex flex-col justify-between gap-6">
             <div>
               <h3 className="text-base font-extrabold text-gray-900">
                 {loggedIn ? "자기소개서" : "자기소개서 체험"}
               </h3>
-              <p className="text-xs text-gray-500 mt-0.5">
-                {loggedIn ? "제목 추천 · AI 첨삭 · 맞춤법 검사" : "문장 다듬기 최대 500자"}
+              <p className="text-xs text-gray-500 mt-1.5">
+                {loggedIn ? "최대 7,000자 작성 · AI 첨삭 · 작성 내역 저장" : "최대 500자 작성 · AI 첨삭 · 맞춤법 검사"}
               </p>
             </div>
             <Link to="/cl" className="block">
@@ -96,19 +103,19 @@ function Home() {
                 type="button"
                 className="w-full rounded-xl border border-brand bg-white py-3 text-sm font-bold text-brand hover:bg-brand-soft transition-colors"
               >
-                {loggedIn ? "자기소개서 작성" : "자기소개서 작성"}
+                자기소개서 작성하기
               </button>
             </Link>
           </div>
 
           {/* 면접 */}
-          <div className="rounded-2xl border border-gray-200 bg-white p-5 flex flex-col justify-between gap-4">
+          <div className="rounded-2xl border border-gray-200 bg-white p-5 flex flex-col justify-between gap-6">
             <div>
               <h3 className="text-base font-extrabold text-gray-900">
-                {loggedIn ? "AI 면접" : "면접 체험"}
+                {loggedIn ? "AI 면접" : "AI 면접 체험"}
               </h3>
-              <p className="text-xs text-gray-500 mt-0.5">
-                {loggedIn ? "이력서·자소서 기반으로 한 꼬리 질문" : "꼬리 질문 1회"}
+              <p className="text-xs text-gray-500 mt-1.5">
+                {loggedIn ? "직무와 서류 기반 심층 질문 · 대화 내역 저장" : "직무 · 서류 기반 맞춤형 면접 질문"}
               </p>
             </div>
             <Link to="/interview" className="block">
@@ -128,13 +135,13 @@ function Home() {
         {loggedIn ? (
           <>
             <h2 className="text-2xl font-extrabold text-gray-900 mb-2 tracking-tight">
-              {user?.id}님, 오늘도 합격을 향해 한 걸음 나아가 볼까요?
+              {quotes[quoteIndex]}
             </h2>
           </>
         ) : (
           <>
-            <h2 className="text-2xl font-extrabold text-gray-900 mb-5 tracking-tight">
-              지금 로그인하고 합격으로 한 발짝
+            <h2 className="text-2xl font-extrabold text-gray-900 mb-8 tracking-tight">
+              지금 로그인하고 합격에 한 걸음 더 가까워지세요
             </h2>
             {/* 시작하기 버튼을 클릭하면 로그인 화면이 나옴 */}
             <button
