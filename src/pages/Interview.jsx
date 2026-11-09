@@ -127,10 +127,8 @@ function Interview() {
   const [evidences, setEvidences] = useState([]); // 근거 문장
   const [filenames, setFilenames] = useState([]); // 해시 파일명
   const [isGenerating, setIsGenerating] = useState(false); // 질문 생성 중 여부
-  // [꼬리질문/진행도 관리] 현재 진행 중인 카테고리 인덱스 (0: 지원 동기 ~ 3: 입사 후 포부)
-  const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0);
-  // [꼬리질문/진행도 관리] 답변이 완료된 카테고리 인덱스 목록 ([0, 1, ...])
-  const [completedCategories, setCompletedCategories] = useState([]);
+  const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0);  // 현재 진행 중인 카테고리 인덱스 (0: 지원 동기 ~ 3: 입사 후 포부)
+  const [completedCategories, setCompletedCategories] = useState([]);  // 답변이 완료된 카테고리 인덱스 목록
 
   const [showResumeModal, setShowResumeModal] = useState(false); // 이력서 모달 열림
   const [showClModal, setShowClModal] = useState(false); // 자기소개서 모달 열림
