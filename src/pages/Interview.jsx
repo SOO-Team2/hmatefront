@@ -131,57 +131,39 @@ function Interview() {
   const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0);
   // [꼬리질문/진행도 관리] 답변이 완료된 카테고리 인덱스 목록 ([0, 1, ...])
   const [completedCategories, setCompletedCategories] = useState([]);
-  const [firstQuestion, setFirstQuestion] = useState(null); // 자기소개 뒤에 보여 줄 첫 질문
 
   const [showResumeModal, setShowResumeModal] = useState(false); // 이력서 모달 열림
   const [showClModal, setShowClModal] = useState(false); // 자기소개서 모달 열림
   const [myResume, setMyResume] = useState(""); // 내 이력서 합친 글
   const [myCl, setMyCl] = useState(null); // 내 자기소개서
 
-  const askQuestion = async () => {
+  const askQuestion = () => {
     setTitle(`${catMajor} > ${catMinor}`); //제목 변경
+    setMessages([]);
+    setEvidences([]);
+    setFilenames([]);
     setIsGenerating(true);
     // [꼬리질문/진행도 초기화] 새 질문 생성 시 1번째 카테고리(지원 동기)부터 시작
     setCurrentCategoryIndex(0);
     setCompletedCategories([]);
 
-    try {
-      const formData = new FormData();
-      formData.append("job", catMinor);
-      if (resumePdf) formData.append("resume_pdf", resumePdf);
-      else if (myResume) formData.append("my_resume", myResume);
-      if (clPdf) formData.append("cl_pdf", clPdf);
-      else if (myCl) formData.append("my_cl", myCl.text);
-      const res = await fetch(`${API_URL}/question`, {
-        method: "POST",
-        body: formData, //FormData는 headers 쓰면 안 됨
-      });
-      const data = await res.json();
-      setFilenames(data.filenames || []);
-      setEvidences([]);
-      setFirstQuestion({
-        text: data.question,
-        evidences: data.evidences || [],
-      });
+    setTimeout(() => {
       setMessages([
         {
           type: "question",
-          text: `안녕하세요. 지원자님, 자기소개 부탁드립니다.`,
+          text: `안녕하세요, 지원자님. 면접에 앞서 간단한 자기소개 부탁드립니다.`,
         },
       ]);
-    } catch {
-      // 질문 생성 실패 처리
-    } finally {
       setIsGenerating(false);
-    }
+    }, 2000);
   };
   // 답변과 서류를 비교해서, 결과를 그 답변 메시지에 붙인다
-  const verifyAnswer = async (answerIndex, text) => {
+  const verifyAnswer = async (answerIndex, text, targetFilenames = filenames) => {
     try {
       const res = await fetch(`${API_URL}/verify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ answer: text, filenames }),
+        body: JSON.stringify({ answer: text, filenames: targetFilenames }),
       });
       if (!res.ok) return;
       const data = await res.json();
@@ -199,31 +181,55 @@ function Interview() {
 
   const submitAnswer = async (e) => {
     if (isGenerating || messages.some((m) => m.type === "end")) return;
-    const textarea = e.currentTarget.previousElementSibling;
+    const textarea =
+      e.currentTarget.tagName === "TEXTAREA"
+        ? e.currentTarget
+        : e.currentTarget.previousElementSibling;
     const text = textarea.value;
     if (!text.trim() || messages.at(-1)?.type !== "question") return;
     textarea.value = "";
 
     const lastQuestionMsg = messages.at(-1); // 직전에 AI 면접관이 한 질문
-    const newAnswerIndex = messages.length;
+    const answerIndex = messages.length;
     setMessages((prev) => [...prev, { type: "answer", text }]);
-    verifyAnswer(newAnswerIndex, text);
 
-    // [자기소개 답변 처리] 자기소개 답변이면 미리 만들어 둔 첫 질문(지원 동기)을 보여 준다
-    if (firstQuestion) {
-      setEvidences([firstQuestion.evidences]);
-      setMessages((prev) => [
-        ...prev,
-        {
-          type: "question",
-          category: CATEGORIES[0],
-          text: firstQuestion.text,
-          isFollowup: false,
-        },
-      ]);
-      setFirstQuestion(null);
+    // 자기소개 답변 후 첫 질문 생성 (/question)
+    if (messages.length === 1) {
+      setIsGenerating(true);
+      try {
+        const formData = new FormData();
+        formData.append("job", title.split(" > ")[1]);
+        if (resumePdf) formData.append("resume_pdf", resumePdf);
+        else if (myResume) formData.append("my_resume", myResume);
+        if (clPdf) formData.append("cl_pdf", clPdf);
+        else if (myCl) formData.append("my_cl", myCl.text);
+        const res = await fetch(`${API_URL}/question`, {
+          method: "POST",
+          body: formData, //FormData는 headers 쓰면 안 됨
+        });
+        const data = await res.json();
+        const newFilenames = data.filenames || [];
+        setFilenames(newFilenames);
+        setEvidences([data.evidences || []]);
+        setMessages((prev) => [
+          ...prev,
+          {
+            type: "question",
+            category: CATEGORIES[0],
+            text: data.question,
+            isFollowup: false,
+          },
+        ]);
+        verifyAnswer(answerIndex, text, newFilenames);
+      } catch {
+        // 질문 생성 실패 처리
+      } finally {
+        setIsGenerating(false);
+      }
       return;
     }
+
+    verifyAnswer(answerIndex, text, filenames);
 
     setIsGenerating(true);
     try {
@@ -365,21 +371,21 @@ function Interview() {
             </div>
           </div>
 
-          <div className="field md:col-span-2">
-            <div className="row flex items-center justify-end gap-1.5">
+          <div className="field md:col-span-3 md:translate-x-2">
+            <div className="row flex items-center justify-center gap-1.5">
               {resumePdf || myResume ? (
-                <>
+                <div className="w-[85%] flex items-center gap-1.5">
                   {/* 넣은 이력서: 누르면 모달을 다시 열어 바꿀 수 있다 */}
                   <button
                     type="button"
                     onClick={() => setShowResumeModal(true)}
-                    className="flex-1 min-w-0 truncate rounded-xl border border-brand-border bg-brand-light px-3.5 py-2.5 text-xs font-semibold text-brand hover:bg-brand-soft transition-colors text-left"
+                    className="flex-1 min-w-0 truncate rounded-xl border border-brand-border bg-brand-light px-3.5 py-2.5 text-xs font-semibold text-brand hover:bg-brand-soft transition-colors text-center"
                   >
                     {resumePdf ? resumePdf.name : "내 이력서"}
                   </button>
                   <button
                     type="button"
-                    aria-label="이력서 선택 해제"
+                    aria-label="이력서 등록 해제"
                     onClick={() => {
                       setResumePdf(null);
                       setMyResume("");
@@ -388,34 +394,34 @@ function Interview() {
                   >
                     ✕
                   </button>
-                </>
+                </div>
               ) : (
                 <button
                   type="button"
                   onClick={() => setShowResumeModal(true)}
-                  className="w-full rounded-xl border border-gray-300 bg-white px-3.5 py-2.5 text-xs font-semibold text-gray-700 hover:border-brand hover:text-brand hover:bg-brand-soft/40 transition-colors"
+                  className="w-[80%] rounded-xl border border-gray-300 bg-white px-3.5 py-2.5 text-xs font-semibold text-gray-700 hover:border-brand hover:text-brand hover:bg-brand-soft/40 transition-colors"
                 >
-                  + 이력서 추가
+                  이력서 등록
                 </button>
               )}
             </div>
           </div>
 
-          <div className="field md:col-span-2">
+          <div className="field md:col-span-3 md:-translate-x-6">
             <div className="row flex items-center justify-center gap-1.5">
               {clPdf || myCl ? (
-                <>
+                <div className="w-[85%] flex items-center gap-1.5">
                   {/* 넣은 자소서: 누르면 모달을 다시 열어 바꿀 수 있다 */}
                   <button
                     type="button"
                     onClick={() => setShowClModal(true)}
-                    className="flex-1 min-w-0 truncate rounded-xl border border-brand-border bg-brand-light px-3.5 py-2.5 text-xs font-semibold text-brand hover:bg-brand-soft transition-colors text-left"
+                    className="flex-1 min-w-0 truncate rounded-xl border border-brand-border bg-brand-light px-3.5 py-2.5 text-xs font-semibold text-brand hover:bg-brand-soft transition-colors text-center"
                   >
                     {clPdf ? clPdf.name : myCl.title}
                   </button>
                   <button
                     type="button"
-                    aria-label="자기소개서 선택 해제"
+                    aria-label="자기소개서 등록 해제"
                     onClick={() => {
                       setClPdf(null);
                       setMyCl(null);
@@ -424,27 +430,26 @@ function Interview() {
                   >
                     ✕
                   </button>
-                </>
+                </div>
               ) : (
                 <button
                   type="button"
                   onClick={() => setShowClModal(true)}
-                  className="w-full rounded-xl border border-gray-300 bg-white px-3.5 py-2.5 text-xs font-semibold text-gray-700 hover:border-brand hover:text-brand hover:bg-brand-soft/40 transition-colors"
+                  className="w-[80%] rounded-xl border border-gray-300 bg-white px-3.5 py-2.5 text-xs font-semibold text-gray-700 hover:border-brand hover:text-brand hover:bg-brand-soft/40 transition-colors"
                 >
-                  + 자기소개서 추가
+                  자기소개서 등록
                 </button>
               )}
             </div>
           </div>
 
-          <div className="md:col-span-1 flex md:justify-end">
+          <div className="md:col-span-1 flex md:justify-end md:-translate-x-5">
             <button
               type="button"
               disabled={isGenerating}
               className="btn-main w-full whitespace-nowrap rounded-xl bg-brand px-4 py-2.5 text-xs font-bold text-white hover:bg-brand-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={askQuestion}
-            >
-              {isGenerating ? "생성 중…" : "질문 생성"}
+            > 면접 시작
             </button>
           </div>
         </div>
@@ -472,7 +477,7 @@ function Interview() {
                     : "text-gray-400 font-medium"
                 }`}
               >
-                {completedCategories.includes(0) ? "완료" : "미입력"}
+                {completedCategories.includes(0) ? "답변 완료" : "답변 전"}
               </p>
             </div>
             <div
@@ -492,7 +497,7 @@ function Interview() {
                     : "text-gray-400 font-medium"
                 }`}
               >
-                {completedCategories.includes(1) ? "완료" : "미입력"}
+                {completedCategories.includes(1) ? "답변 완료" : "답변 전"}
               </p>
             </div>
             <div
@@ -512,7 +517,7 @@ function Interview() {
                     : "text-gray-400 font-medium"
                 }`}
               >
-                {completedCategories.includes(2) ? "완료" : "미입력"}
+                {completedCategories.includes(2) ? "답변 완료" : "답변 전"}
               </p>
             </div>
             <div
@@ -532,7 +537,7 @@ function Interview() {
                     : "text-gray-400 font-medium"
                 }`}
               >
-                {completedCategories.includes(3) ? "완료" : "미입력"}
+                {completedCategories.includes(3) ? "답변 완료" : "답변 전"}
               </p>
             </div>
           </div>
@@ -543,10 +548,10 @@ function Interview() {
         id="iv-ev"
         className="lg:col-span-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-2xs space-y-5"
       >
-        <h3 className="text-lg font-extrabold text-gray-900">근거 문장</h3>
+        <h3 className="text-lg font-extrabold text-gray-900">참고 문장</h3>
         {evidences.length === 0 && (
           <p className="text-xs text-gray-400 py-6 text-center">
-            질문을 생성하면 근거 문장이 표시됩니다.
+            등록한 서류의 참고 문장이 표시됩니다.
           </p>
         )}
         {evidences[0]?.length > 0 && (
@@ -556,9 +561,19 @@ function Interview() {
               {evidences[0].map((ev, i) => (
                 <div
                   key={i}
-                  className="ev-item rounded-xl border border-brand-border bg-brand-soft p-3 text-xs text-gray-800 leading-relaxed"
+                  className={`ev-item rounded-xl text-xs leading-relaxed ${
+                    evidences.length === 1
+                      ? "border border-brand-border bg-brand-soft p-3 text-gray-800"
+                      : "px-1 py-0.5 text-gray-500"
+                  }`}
                 >
-                  <span className="font-extrabold text-brand mr-1.5">
+                  <span
+                    className={`font-extrabold mr-1.5 ${
+                      evidences.length === 1
+                        ? "text-brand"
+                        : "text-gray-500"
+                    }`}
+                  >
                     [1-{i + 1}]
                   </span>{" "}
                   {ev}
@@ -574,9 +589,19 @@ function Interview() {
               {evidences[1].map((ev, i) => (
                 <div
                   key={i}
-                  className="ev-item rounded-xl border border-brand-border bg-brand-soft p-3 text-xs text-gray-800 leading-relaxed"
+                  className={`ev-item rounded-xl text-xs leading-relaxed ${
+                    evidences.length === 2
+                      ? "border border-brand-border bg-brand-soft p-3 text-gray-800"
+                      : "px-1 py-0.5 text-gray-500"
+                  }`}
                 >
-                  <span className="font-extrabold text-brand mr-1.5">
+                  <span
+                    className={`font-extrabold mr-1.5 ${
+                      evidences.length === 2
+                        ? "text-brand"
+                        : "text-gray-500"
+                    }`}
+                  >
                     [2-{i + 1}]
                   </span>{" "}
                   {ev}
@@ -592,9 +617,19 @@ function Interview() {
               {evidences[2].map((ev, i) => (
                 <div
                   key={i}
-                  className="ev-item rounded-xl border border-brand-border bg-brand-soft p-3 text-xs text-gray-800 leading-relaxed"
+                  className={`ev-item rounded-xl text-xs leading-relaxed ${
+                    evidences.length === 3
+                      ? "border border-brand-border bg-brand-soft p-3 text-gray-800"
+                      : "px-1 py-0.5 text-gray-500"
+                  }`}
                 >
-                  <span className="font-extrabold text-brand mr-1.5">
+                  <span
+                    className={`font-extrabold mr-1.5 ${
+                      evidences.length === 3
+                        ? "text-brand"
+                        : "text-gray-500"
+                    }`}
+                  >
                     [3-{i + 1}]
                   </span>{" "}
                   {ev}
@@ -610,9 +645,19 @@ function Interview() {
               {evidences[3].map((ev, i) => (
                 <div
                   key={i}
-                  className="ev-item rounded-xl border border-brand-border bg-brand-soft p-3 text-xs text-gray-800 leading-relaxed"
+                  className={`ev-item rounded-xl text-xs leading-relaxed ${
+                    evidences.length === 4 && messages.at(-1)?.type !== "end"
+                      ? "border border-brand-border bg-brand-soft p-3 text-gray-800"
+                      : "px-1 py-0.5 text-gray-500"
+                  }`}
                 >
-                  <span className="font-extrabold text-brand mr-1.5">
+                  <span
+                    className={`font-extrabold mr-1.5 ${
+                      evidences.length === 4 && messages.at(-1)?.type !== "end"
+                        ? "text-brand"
+                        : "text-gray-500"
+                    }`}
+                  >
                     [4-{i + 1}]
                   </span>{" "}
                   {ev}
@@ -672,10 +717,14 @@ function Interview() {
                   )}
                   {evidences[CATEGORIES.indexOf(msg.category)]?.length > 0 && (
                     <span className="inline-block rounded-md bg-brand-light px-2.5 py-0.5 text-xs font-bold text-brand">
-                      근거 [{CATEGORIES.indexOf(msg.category) + 1}-1]
+                      참고 [{CATEGORIES.indexOf(msg.category) + 1}-1]
                     </span>
                   )}
-                  <div className="text-sm text-gray-900 leading-relaxed pt-1">
+                  <div
+                    className={`text-sm text-gray-900 leading-relaxed ${
+                      msg.category ? "pt-1" : ""
+                    }`}
+                  >
                     {msg.text}
                   </div>
                 </div>
@@ -718,36 +767,12 @@ function Interview() {
                 alt="면접관"
                 className="w-10 h-10 shrink-0 rounded-full animate-pulse"
               />
-              <div className="msg-q max-w-[85%] rounded-2xl border border-brand/20 bg-brand-light/40 p-4 shadow-2xs space-y-2">
-                <div className="flex items-center gap-2">
-                  <span className="inline-block rounded-md bg-brand px-2.5 py-0.5 text-xs font-bold text-white">
-                    AI 면접관
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 text-sm font-bold text-gray-800 pt-0.5">
-                  <svg
-                    className="animate-spin h-4 w-4 text-brand"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    {" "}
-                    {/* 로딩 스피너 */}
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8v8H4z"
-                    ></path>
-                  </svg>
-                  <span>질문 생성 중입니다...</span>
+              <div className="msg-q max-w-[85%] rounded-2xl border border-gray-200 bg-white p-4 shadow-2xs space-y-2">
+                <div className="flex items-center text-sm font-bold text-gray-800 pt-0.5">
+                  <span>질문 준비 중</span>
+                  <span className="dot-1">.</span>
+                  <span className="dot-2">.</span>
+                  <span className="dot-3">.</span>
                 </div>
               </div>
             </div>
@@ -761,11 +786,19 @@ function Interview() {
             placeholder={
               isEnded
                 ? "면접이 모두 종료되었습니다. 수고하셨습니다."
-                : isGenerating
-                ? "질문을 생성하고 있습니다. 잠시만 기다려 주세요..."
-                : "답변을 입력하세요"
+                : "답변을 입력해 주세요."
             }
             disabled={isGenerating || isEnded}
+            onKeyDown={(e) => {
+              if (
+                e.key === "Enter" &&
+                !e.shiftKey &&
+                !e.nativeEvent.isComposing
+              ) {
+                e.preventDefault();
+                submitAnswer(e);
+              }
+            }}
             className="flex-1 min-h-[84px] rounded-xl border border-gray-300 p-3.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15 resize-none disabled:bg-gray-50 disabled:text-gray-400"
           ></textarea>
           <button
@@ -773,13 +806,14 @@ function Interview() {
             disabled={isGenerating || messages.length === 0 || isEnded}
             className="btn-main shrink-0 rounded-xl bg-brand px-5 py-3 text-sm font-bold text-white hover:bg-brand-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={submitAnswer}
-          >
-            {isGenerating ? "생성 중…" : "전송"}
+          > 전송
           </button>
         </div>
       </div>
       {showClModal && (
         <ClModal
+          selectedPdf={clPdf}
+          selectedCl={myCl}
           onClose={() => setShowClModal(false)}
           onSelect={({ file, cl }) => {
             setClPdf(file ?? null);
@@ -789,6 +823,8 @@ function Interview() {
       )}
       {showResumeModal && (
         <ResumeModal
+          selectedPdf={resumePdf}
+          selectedResume={Boolean(myResume)}
           onClose={() => setShowResumeModal(false)}
           onSelect={({ file, text }) => {
             // 한쪽을 넣으면 다른 쪽은 비운다 (PDF ↔ 양식 바꿀 때 예전 값이 남지 않게)

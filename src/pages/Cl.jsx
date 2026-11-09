@@ -271,7 +271,7 @@ try {
       <section
         className={`${
           showFeedback ? "lg:col-span-7" : "lg:col-span-12"
-        } rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-2xs space-y-5`}
+        } rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-2xs space-y-8`}
       >
         <div>
           <label className="block text-sm font-bold text-gray-800 mb-2">

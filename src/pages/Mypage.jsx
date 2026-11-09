@@ -471,7 +471,7 @@ function Mypage() {
 
         {/* 이력서 탭*/}
         {activeTab === "resume" && (
-          <section className="space-y-5">
+          <section className="space-y-7">
             <h2 className="text-2xl font-extrabold text-gray-900 tracking-tight">
               이력서
             </h2>
