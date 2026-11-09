@@ -4,8 +4,8 @@ import Modal from "./Modal";
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
 // onClose: 모달 닫기, onSelect: 고른 자소서를 부모에게 넘기기
-// 저장된 자소서를 고르면 { cl: { title, text } }, PDF를 올리면 { file }을 넘긴다
-function ClModal({ onClose, onSelect }) {
+// 저장된 자소서를 고르면 { cl: { cl_id, title, text } }, PDF를 올리면 { file }을 넘긴다
+function ClModal({ onClose, onSelect, selectedPdf, selectedCl }) {
   // 서버에서 받은 내 자소서 목록
   const [cls, setCls] = useState([]);
   // 저장된 토큰. 없으면 처음부터 로그인 안내를 보여 준다
@@ -50,7 +50,7 @@ function ClModal({ onClose, onSelect }) {
       .filter(([, body]) => body)
       .map(([label, body]) => `[${label}]\n${body}`)
       .join("\n\n");
-    onSelect({ cl: { title: cl.title, text } });
+    onSelect({ cl: { cl_id: cl.cl_id, title: cl.title, text } });
     onClose();
   };
 
@@ -65,7 +65,7 @@ function ClModal({ onClose, onSelect }) {
   return (
     <Modal onClose={onClose}>
       <div className="flex items-center justify-between mb-5">
-        <h2 className="text-xl font-extrabold text-gray-900">자기소개서 선택</h2>
+        <h2 className="text-xl font-extrabold text-gray-900">자기소개서 등록</h2>
         <button
           type="button"
           onClick={onClose}
@@ -90,19 +90,32 @@ function ClModal({ onClose, onSelect }) {
         {/* 카드를 누르면 넘기고 닫음 */}
         {cls.length > 0 && (
           <div className="space-y-2.5 max-h-60 overflow-y-auto pr-1">
-            {cls.map((cl) => (
-              <button
-                key={cl.cl_id}
-                type="button"
-                onClick={() => pick(cl)}
-                className="w-full text-left rounded-xl border border-gray-200 bg-white p-4 hover:border-brand hover:bg-brand-soft transition-colors"
-              >
-                <p className="text-sm font-extrabold text-gray-900">{cl.title}</p>
-                <p className="text-xs text-gray-500 mt-1 truncate">
-                  {cl.motivation || cl.experience || cl.personality || cl.plan}
-                </p>
-              </button>
-            ))}
+            {cls.map((cl) => {
+              const isSelected = selectedCl?.cl_id === cl.cl_id;
+              return (
+                <button
+                  key={cl.cl_id}
+                  type="button"
+                  onClick={() => pick(cl)}
+                  className={`w-full text-left rounded-xl border p-4 transition-colors ${
+                    isSelected
+                      ? "border-brand bg-brand-soft"
+                      : "border-gray-200 bg-white hover:border-brand hover:bg-brand-soft"
+                  }`}
+                >
+                  <p
+                    className={`text-sm font-extrabold ${
+                      isSelected ? "text-brand" : "text-gray-900"
+                    }`}
+                  >
+                    {cl.title}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1 truncate">
+                    {cl.motivation || cl.experience || cl.personality || cl.plan}
+                  </p>
+                </button>
+              );
+            })}
           </div>
         )}
       </div>
@@ -119,17 +132,29 @@ function ClModal({ onClose, onSelect }) {
         </div>
       </div>
 
-      {/* 2. PC에서 PDF 직접 업로드 */}
+      {/* 2. PC에서 불러오기 */}
       <div className="space-y-2.5">
         <p className="text-xs font-extrabold text-gray-500">
-          내 PC에서 직접 업로드
+          PC에서 불러오기
         </p>
-        <label className="flex items-center justify-between gap-3 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-3.5 cursor-pointer hover:border-brand hover:bg-brand-soft/50 transition-colors">
-          <span className="text-xs font-medium text-gray-600">
-            PDF 파일을 업로드합니다
+        <label
+          className={`flex items-center justify-between gap-3 rounded-xl border-2 border-dashed px-4 py-3.5 cursor-pointer transition-colors ${
+            selectedPdf
+              ? "border-brand bg-brand-soft"
+              : "border-gray-300 bg-gray-50 hover:border-brand hover:bg-brand-soft/50"
+          }`}
+        >
+          <span
+            className={`text-xs truncate ${
+              selectedPdf
+                ? "font-bold text-brand"
+                : "font-medium text-gray-600"
+            }`}
+          >
+            {selectedPdf ? selectedPdf.name : "파일을 선택해 주세요 (.pdf)"}
           </span>
           <span className="shrink-0 rounded-lg border border-brand bg-white px-3 py-1.5 text-xs font-bold text-brand">
-            PDF 업로드
+            내 PC
           </span>
           <input
             type="file"

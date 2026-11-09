@@ -29,7 +29,7 @@ function Home() {
   }, [])
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-12 space-y-8">
+    <div className="max-w-6xl mx-auto px-6 py-12 space-y-12">
       {/* 1. 메인 히어로 섹션 */}
       <section className="pt-2 pb-4">
         <span className="inline-block rounded-full bg-brand-light px-3.5 py-1 text-xs font-bold text-brand mb-4">
@@ -40,7 +40,7 @@ function Home() {
           합격 메이트와 함께 준비해요
         </h1>
         <p className="text-base sm:text-lg text-gray-600">
-          내가 쓴 문장으로 예상 면접 질문을 뽑아 드려요.
+          작성한 문장으로 예상 면접 질문을 뽑아 드립니다.
         </p>
       </section>
 
@@ -60,7 +60,7 @@ function Home() {
             02 AI 면접
           </span>
           <h3 className="text-lg font-extrabold text-gray-900">
-            내 자기소개서 기반 질문
+            자기소개서 기반 질문
           </h3>
         </div>
 
@@ -69,7 +69,7 @@ function Home() {
             03 답변 검증
           </span>
           <h3 className="text-lg font-extrabold text-gray-900">
-            자기소개서와 면접 답변 비교 분석
+            서류와 면접 답변 분석
           </h3>
         </div>
       </section>
@@ -77,7 +77,7 @@ function Home() {
       {/* 3. 시작하기 / 체험 섹션 */}
       <section className="rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-2xs">
         <h2 className="text-lg font-extrabold text-gray-900 mb-5">
-          {loggedIn ? "클릭 한 번으로 바로 시작해 보세요" : "회원가입 없이 체험해 보세요"}
+          {loggedIn ? "지금 바로 시작해 보세요" : "회원가입 없이 체험해 보세요"}
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -96,7 +96,7 @@ function Home() {
                 type="button"
                 className="w-full rounded-xl border border-brand bg-white py-3 text-sm font-bold text-brand hover:bg-brand-soft transition-colors"
               >
-                {loggedIn ? "자기소개서 작성하기" : "자기소개서 다듬기"}
+                {loggedIn ? "자기소개서 작성" : "자기소개서 작성"}
               </button>
             </Link>
           </div>
