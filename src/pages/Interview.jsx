@@ -131,6 +131,7 @@ function Interview() {
   const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0);
   // [꼬리질문/진행도 관리] 답변이 완료된 카테고리 인덱스 목록 ([0, 1, ...])
   const [completedCategories, setCompletedCategories] = useState([]);
+  const [firstQuestion, setFirstQuestion] = useState(null); // 자기소개 뒤에 보여 줄 첫 질문
 
   const [showResumeModal, setShowResumeModal] = useState(false); // 이력서 모달 열림
   const [showClModal, setShowClModal] = useState(false); // 자기소개서 모달 열림
@@ -157,13 +158,15 @@ function Interview() {
       });
       const data = await res.json();
       setFilenames(data.filenames || []);
-      setEvidences([data.evidences || []]);
+      setEvidences([]);
+      setFirstQuestion({
+        text: data.question,
+        evidences: data.evidences || [],
+      });
       setMessages([
         {
           type: "question",
-          category: CATEGORIES[0],
-          text: data.question,
-          isFollowup: false, // 첫 질문은 항상 메인 질문
+          text: `안녕하세요. 지원자님, 자기소개 부탁드립니다.`,
         },
       ]);
     } catch {
@@ -205,6 +208,22 @@ function Interview() {
     const newAnswerIndex = messages.length;
     setMessages((prev) => [...prev, { type: "answer", text }]);
     verifyAnswer(newAnswerIndex, text);
+
+    // [자기소개 답변 처리] 자기소개 답변이면 미리 만들어 둔 첫 질문(지원 동기)을 보여 준다
+    if (firstQuestion) {
+      setEvidences([firstQuestion.evidences]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          type: "question",
+          category: CATEGORIES[0],
+          text: firstQuestion.text,
+          isFollowup: false,
+        },
+      ]);
+      setFirstQuestion(null);
+      return;
+    }
 
     setIsGenerating(true);
     try {
@@ -656,7 +675,7 @@ function Interview() {
                     <div className="flex items-center gap-2">
                       <span>⚠️</span>
                       <h4 className="text-sm font-extrabold">
-                        {msg.mismatches[0].source}와 다른 부분이 있어요
+                      {[...new Set(msg.mismatches.map((item) => item.source))].join("·")}와 다른 부분이 있어요
                       </h4>
                     </div>
                     {msg.mismatches.map((item, j) => (
@@ -686,12 +705,29 @@ function Interview() {
                   <span className="inline-block rounded-md bg-brand px-2.5 py-0.5 text-xs font-bold text-white">
                     AI 면접관
                   </span>
-
                 </div>
                 <div className="flex items-center gap-2 text-sm font-bold text-gray-800 pt-0.5">
-                  <svg className="animate-spin h-4 w-4 text-brand" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"> {/* 로딩 스피너 */}
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                  <svg
+                    className="animate-spin h-4 w-4 text-brand"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    {" "}
+                    {/* 로딩 스피너 */}
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v8H4z"
+                    ></path>
                   </svg>
                   <span>질문 생성 중입니다...</span>
                 </div>
