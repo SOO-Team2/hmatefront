@@ -198,7 +198,7 @@ function Interview() {
   };
 
   const submitAnswer = async (e) => {
-    if (isGenerating) return;
+    if (isGenerating || messages.some((m) => m.type === "end")) return;
     const textarea = e.currentTarget.previousElementSibling;
     const text = textarea.value;
     if (!text.trim() || messages.at(-1)?.type !== "question") return;
@@ -316,6 +316,8 @@ function Interview() {
       setIsGenerating(false);
     }
   };
+
+  const isEnded = messages.some((m) => m.type === "end"); // 면접 종료 여부
 
   return (
     <div
@@ -652,6 +654,22 @@ function Interview() {
                       {msg.category}
                     </span>
                   )}
+                  {msg.isFollowup && (
+                    <span
+                      style={{ backgroundColor: "#D97706", color: "#ffffff" }}
+                      className="inline-block rounded-md px-2.5 py-0.5 text-xs font-bold mr-1.5 shadow-2xs"
+                    >
+                      꼬리 질문
+                    </span>
+                  )}
+                  {msg.type === "end" && (
+                    <span
+                      style={{ backgroundColor: "#4B5563", color: "#ffffff" }}
+                      className="inline-block rounded-md px-2.5 py-0.5 text-xs font-bold mr-1.5 shadow-2xs"
+                    >
+                      면접 종료
+                    </span>
+                  )}
                   {evidences[CATEGORIES.indexOf(msg.category)]?.length > 0 && (
                     <span className="inline-block rounded-md bg-brand-light px-2.5 py-0.5 text-xs font-bold text-brand">
                       근거 [{CATEGORIES.indexOf(msg.category) + 1}-1]
@@ -741,16 +759,18 @@ function Interview() {
         >
           <textarea
             placeholder={
-              isGenerating
+              isEnded
+                ? "면접이 모두 종료되었습니다. 수고하셨습니다."
+                : isGenerating
                 ? "질문을 생성하고 있습니다. 잠시만 기다려 주세요..."
                 : "답변을 입력하세요"
             }
-            disabled={isGenerating}
+            disabled={isGenerating || isEnded}
             className="flex-1 min-h-[84px] rounded-xl border border-gray-300 p-3.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15 resize-none disabled:bg-gray-50 disabled:text-gray-400"
           ></textarea>
           <button
             type="button"
-            disabled={isGenerating || messages.length === 0}
+            disabled={isGenerating || messages.length === 0 || isEnded}
             className="btn-main shrink-0 rounded-xl bg-brand px-5 py-3 text-sm font-bold text-white hover:bg-brand-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={submitAnswer}
           >
