@@ -180,7 +180,7 @@ function Interview() {
   };
 
   const submitAnswer = async (e) => {
-    if (isGenerating || messages.some((m) => m.type === "end")) return;
+    if (isGenerating) return;
     const textarea =
       e.currentTarget.tagName === "TEXTAREA"
         ? e.currentTarget
@@ -322,8 +322,6 @@ function Interview() {
       setIsGenerating(false);
     }
   };
-
-  const isEnded = messages.some((m) => m.type === "end"); // 면접 종료 여부
 
   return (
     <div
@@ -783,12 +781,8 @@ function Interview() {
           className="border-t border-gray-200 p-4 flex items-end gap-3 bg-white"
         >
           <textarea
-            placeholder={
-              isEnded
-                ? "면접이 모두 종료되었습니다. 수고하셨습니다."
-                : "답변을 입력해 주세요."
-            }
-            disabled={isGenerating || isEnded}
+            placeholder="답변을 입력해 주세요."
+            disabled={isGenerating}
             onKeyDown={(e) => {
               if (
                 e.key === "Enter" &&
@@ -803,7 +797,7 @@ function Interview() {
           ></textarea>
           <button
             type="button"
-            disabled={isGenerating || messages.length === 0 || isEnded}
+            disabled={isGenerating || messages.length === 0}
             className="btn-main shrink-0 rounded-xl bg-brand px-5 py-3 text-sm font-bold text-white hover:bg-brand-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={submitAnswer}
           > 전송
