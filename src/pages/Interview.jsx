@@ -173,6 +173,10 @@ function Interview() {
       }
 
       // [다음 카테고리 이동] 다음 카테고리 메인 질문 생성 (/answer API 호출)
+      const previousQuestions = messages
+        .filter((m) => m.type === "question" && m.text)
+        .map((m) => m.text);
+
       const res = await fetch(`${API_URL}/answer`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -180,6 +184,7 @@ function Interview() {
           category: nextCategory,
           job,
           filenames,
+          previous_questions: previousQuestions,
         }),
       });
       const data = await res.json();
