@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 // 서버(FastAPI) 주소. 배포하면 주소가 바뀌어서 한곳에 모아 둔다.
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 const GUEST_LIMIT = 500;
-const MEMBER_LIMIT = 7000;
+const MEMBER_LIMIT = 4000;
 // /\s/g : 공백을 전부 찾는 규칙, replace(..., "") : 찾은 공백을 지움
 const count = (text) => text.replace(/\s/g, "").length;
 
