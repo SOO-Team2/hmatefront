@@ -21,6 +21,7 @@ function Interview() {
   const [isGenerating, setIsGenerating] = useState(false); // 질문 생성 중 여부
   const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0); // 현재 진행 중인 카테고리 인덱스 (0: 지원 동기 ~ 3: 입사 후 포부)
   const token = localStorage.getItem("access_token"); // 로그인 토큰 (없으면 비회원)
+  const navigate = useNavigate(); // 페이지 이동 함수
 
   const askQuestion = () => {
     setTitle(`${jobCat.major} > ${jobCat.minor}`); //제목 변경
@@ -274,9 +275,6 @@ function Interview() {
     } catch {
       setMessages((prev) => prev.slice(0, answerIndex));
       textarea.value = text;
-      setCompletedCategories((prev) =>
-        prev.filter((index) => index !== currentCategoryIndex),
-      );
       setCurrentCategoryIndex(currentCategoryIndex);
       window.alert(
         "질문 생성에 실패했습니다. 답변을 확인하고 다시 시도해 주세요.",
