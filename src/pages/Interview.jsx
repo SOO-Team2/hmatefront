@@ -10,6 +10,7 @@ function Interview() {
     major: "기획·전략",
     minor: "경영·비즈니스기획",
   }); // 직무 대분류·소분류
+  const [activeModal, setActiveModal] = useState(null); // 모달 열림 ("resume" | "cl" | null)
   const [resume, setResume] = useState(null); // 이력서 ({ file } 또는 { text })
   const [cl, setCl] = useState(null); // 자기소개서 ({ file } 또는 { text })
   const [title, setTitle] = useState("기획·전략 > 경영·비즈니스기획"); //대화 제목
@@ -18,8 +19,7 @@ function Interview() {
   const [filenames, setFilenames] = useState([]); // 해시 파일명
   const [isGenerating, setIsGenerating] = useState(false); // 질문 생성 중 여부
   const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0); // 현재 진행 중인 카테고리 인덱스 (0: 지원 동기 ~ 3: 입사 후 포부)
-
-  const [activeModal, setActiveModal] = useState(null); // 모달 열림 ("resume" | "cl" | null)
+  const token = localStorage.getItem("access_token"); // 로그인 토큰 (없으면 비회원)
 
   const askQuestion = () => {
     setTitle(`${jobCat.major} > ${jobCat.minor}`); //제목 변경
@@ -120,9 +120,11 @@ function Interview() {
         lastQuestionMsg?.category || CATEGORIES[currentCategoryIndex];
       const job = title.split(" > ")[1] || jobCat.minor;
 
-      // [꼬리질문 판단] 직전 질문이 메인 질문인 경우(/followup API 호출)
-      // 백엔드에서 답변 내용을 분석해 꼬리질문이 필요한지 판단
-      if (!lastQuestionMsg?.isFollowup) {
+      // [꼬리질문 판단] 직전 질문이 메인 질문이고, 회원이거나 꼬리질문이 나온 적 없을 때(/followup API 호출)
+      if (
+        !lastQuestionMsg?.isFollowup &&
+        (token || !messages.some((m) => m.isFollowup))
+      ) {
         const followupRes = await fetch(`${API_URL}/followup`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -156,7 +158,8 @@ function Interview() {
       // [카테고리 완료] 꼬리질문이 불필요하거나, 이미 꼬리질문 답변을 마친 경우 다음 카테고리로 진행
       const nextCategoryIndex = currentCategoryIndex + 1;
       setCurrentCategoryIndex(nextCategoryIndex);
-      const nextCategory = CATEGORIES[nextCategoryIndex];
+      const nextCategory =
+        (token || nextCategoryIndex < 2) && CATEGORIES[nextCategoryIndex];
 
       // [면접 종료] 4개 카테고리(지원동기, 경험, 인성, 포부)를 모두 마쳤을 때
       if (!nextCategory) {
@@ -410,19 +413,25 @@ function Interview() {
       >
         <div
           id="chat-head"
-          className="flex items-center justify-between px-6 py-4 border-b border-gray-200"
+          className="flex items-center justify-between px-6 py-4 min-h-[67px] border-b border-gray-200"
         >
           <h3 className="text-base font-extrabold text-gray-900">{title}</h3>
-          <button
-            type="button"
-            className="rounded-xl border border-brand bg-white px-4 py-2 text-xs font-bold text-brand hover:bg-brand-soft transition-colors"
-          >
-            대화 저장
-          </button>
+          {token && (
+            <button
+              type="button"
+              className="rounded-xl border border-brand bg-white px-4 py-2 text-xs font-bold text-brand hover:bg-brand-soft transition-colors"
+            >
+              대화 저장
+            </button>
+          )}
         </div>
         <div id="chat-list" className="p-6 space-y-4 min-h-[360px]">
           {messages.map((msg, i) =>
-            msg.type === "question" || msg.type === "end" ? (
+            msg.type === "end" && !token ? (
+              <p key={i} className="text-sm text-gray-400 py-6 text-center">
+                로그인 후 전체 면접을 이용할 수 있습니다.
+              </p>
+            ) : msg.type === "question" || msg.type === "end" ? (
               <div key={i} className="flex items-start gap-3">
                 <img
                   src="/interviewer.svg"
