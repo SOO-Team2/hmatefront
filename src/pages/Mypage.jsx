@@ -12,7 +12,7 @@ const SECTIONS = [
 // [칸 이름, 제목, 최대 글자 수, 필수인지]
 const RESUME_FIELDS = [
   ["name", "이름", 50, true],
-  ["school", "학교", 100, true],
+  ["school", "학교명", 100, true],
   ["major", "전공", 100, true],
   ["skill", "보유 기술 (예: Python, SQL 등)", 255, false],
 ];
@@ -238,7 +238,7 @@ function Mypage() {
   // 현재 선택된 사이드바 탭(시작탭 : 이력서)
   const [activeTab, setActiveTab] = useState("resume");
 
-  // 이력서 칸 하나 바꾸기 (이름, 학교, 전공, 기술)
+  // 이력서 칸 하나 바꾸기 (이름, 학교명, 전공, 기술)
   const changeResume = (key, value) => setResume({ ...resume, [key]: value });
 
   // 경력·자격증 목록에서 i번째 줄의 칸 하나 바꾸기
@@ -279,7 +279,7 @@ function Mypage() {
         setResumeMessage("저장했습니다.");
       } else if (res.status === 422) {
         setResumeMessage(
-          "이름·학교·전공은 꼭 입력하고, 자격증명은 비우지 말아 주세요.",
+          "이름·학교명·전공은 꼭 입력하고, 자격증명은 비우지 말아 주세요.",
         );
       } else {
         setResumeMessage("저장 중 오류가 발생했습니다.");
@@ -544,7 +544,7 @@ function Mypage() {
               이력서
             </h2>
 
-            {/* 이름, 학교, 전공, 보유 기술 */}
+            {/* 이름, 학교명, 전공, 보유 기술 */}
             {RESUME_FIELDS.map(([key, label, max, required]) => (
               <div key={key}>
                 <p className="text-xs font-bold text-gray-800 mb-1.5">

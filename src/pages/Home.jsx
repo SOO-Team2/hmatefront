@@ -95,7 +95,7 @@ function Home() {
                 {loggedIn ? "자기소개서" : "자기소개서 체험"}
               </h3>
               <p className="text-xs text-gray-500 mt-1.5">
-                {loggedIn ? "최대 4,000자 작성 · AI 첨삭 · 작성 내역 저장" : "최대 500자 작성 · AI 첨삭 · 맞춤법 검사"}
+                {loggedIn ? "최대 7,000자 작성 · AI 첨삭 · 작성본 저장" : "최대 500자 작성 · AI 첨삭 · 맞춤법 검사"}
               </p>
             </div>
             <Link to="/cl" className="block">
@@ -115,7 +115,7 @@ function Home() {
                 {loggedIn ? "AI 면접" : "AI 면접 체험"}
               </h3>
               <p className="text-xs text-gray-500 mt-1.5">
-                {loggedIn ? "직무와 서류 기반 심층 질문 · 대화 내역 저장" : "직무 · 서류 기반 맞춤형 면접 질문"}
+                {loggedIn ? "기본 4문항 · 맞춤 심층 질문 · 대화 저장" : "기본 2문항 · 심층 질문 1회 · 답변 검증"}
               </p>
             </div>
             <Link to="/interview" className="block">
