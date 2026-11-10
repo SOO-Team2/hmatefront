@@ -86,7 +86,8 @@ function Mypage() {
 
   // 삭제 버튼: 서버에서 지우고, 성공하면 화면 목록에서도 뺀다
   const deleteCl = async (clId) => {
-    if (!confirm("삭제 후에는 복구할 수 없습니다. 정말 삭제하시겠습니까?")) return;
+    if (!confirm("삭제 후에는 복구할 수 없습니다. 정말 삭제하시겠습니까?"))
+      return;
     try {
       const res = await fetch(`${API_URL}/mypage/cl/${clId}`, {
         method: "DELETE",
@@ -127,7 +128,13 @@ function Mypage() {
         setCls(cls.map((cl) => (cl.cl_id === editingId ? updated : cl)));
         setEditingId(null);
       } else {
-        alert("저장 중 오류가 발생했습니다. 제목은 1~200자로 입력해 주세요.");
+        // 서버가 보낸 실패 이유(detail)를 보여 준다. 글자(문자열)가 아니면 기본 문구
+        const data = await res.json().catch(() => ({}));
+        alert(
+          typeof data.detail === "string"
+            ? data.detail
+            : "저장 중 오류가 발생했습니다.",
+        );
       }
     } catch {
       alert("서버에 연결할 수 없습니다.");
@@ -158,7 +165,8 @@ function Mypage() {
 
   // 면접 삭제 버튼: 서버에서 지우고, 성공하면 화면 목록에서도 뺀다
   const deleteInterview = async (interviewId) => {
-    if (!confirm("삭제 후에는 복구할 수 없습니다. 정말 삭제하시겠습니까?")) return;
+    if (!confirm("삭제 후에는 복구할 수 없습니다. 정말 삭제하시겠습니까?"))
+      return;
     try {
       const res = await fetch(`${API_URL}/mypage/interview/${interviewId}`, {
         method: "DELETE",
@@ -281,8 +289,66 @@ function Mypage() {
     }
   };
 
-  // 로그인 안 했으면 마이페이지 대신 안내만
+  // 포트폴리오 PDF 올리기: 파일은 JSON이 아니라 FormData로 보낸다
+  const uploadPortfolio = async (e) => {
+    const file = e.target.files[0];
+    e.target.value = ""; // 같은 파일을 다시 골라도 동작하게 비워 둔다
+    if (!file) return;
+    setResumeMessage("");
+    const form = new FormData();
+    form.append("file", file); // "file"은 mypage.py의 file 매개변수 이름과 같아야 함
+    try {
+      const res = await fetch(`${API_URL}/mypage/resume/portfolio`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` }, // Content-Type은 브라우저가 자동으로 붙임
+        body: form,
+      });
+      if (res.ok) {
+        setResume({ ...resume, has_portfolio: true });
+        setResumeMessage("포트폴리오를 등록했습니다.");
+      } else {
+        const data = await res.json();
+        setResumeMessage(data.detail || "업로드 중 오류가 발생했습니다.");
+      }
+    } catch {
+      setResumeMessage("서버에 연결할 수 없습니다.");
+    }
+  };
 
+  // 포트폴리오 보기: 토큰이 필요해서 링크 대신 fetch로 받아 새 탭에 연다
+  const openPortfolio = async () => {
+    try {
+      const res = await fetch(`${API_URL}/mypage/resume/portfolio`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return setResumeMessage("등록된 포트폴리오가 없습니다.");
+      const blob = await res.blob();
+      window.open(URL.createObjectURL(blob));
+    } catch {
+      setResumeMessage("서버에 연결할 수 없습니다.");
+    }
+  };
+
+  // 포트폴리오 삭제
+  const deletePortfolio = async () => {
+    if (!confirm("포트폴리오를 삭제하시겠습니까?")) return;
+    try {
+      const res = await fetch(`${API_URL}/mypage/resume/portfolio`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        setResume({ ...resume, has_portfolio: false });
+        setResumeMessage("포트폴리오를 삭제했습니다.");
+      } else {
+        setResumeMessage("삭제 중 오류가 발생했습니다.");
+      }
+    } catch {
+      setResumeMessage("서버에 연결할 수 없습니다.");
+    }
+  };
+
+  // 로그인 안 했으면 마이페이지 대신 안내만
   if (!token) {
     return (
       <main className="max-w-6xl mx-auto px-6 py-16">
@@ -498,14 +564,10 @@ function Mypage() {
             {/* 자격증 (여러 개) */}
             <div className="rounded-2xl border border-gray-200 p-5 space-y-3">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-extrabold text-gray-900">
-                  자격증
-                </p>
+                <p className="text-sm font-extrabold text-gray-900">자격증</p>
                 <button
                   type="button"
-                  onClick={() =>
-                    addItem("certificates", { cert: "", org: "" })
-                  }
+                  onClick={() => addItem("certificates", { cert: "", org: "" })}
                   className="rounded-lg border border-brand bg-white px-3 py-1 text-xs font-bold text-brand hover:bg-brand-soft transition-colors"
                 >
                   + 추가
@@ -587,13 +649,51 @@ function Mypage() {
                 </div>
               ))}
             </div>
-
+            {/* 포트폴리오 (PDF 1개) */}
+            <div className="rounded-2xl border border-gray-200 p-5 space-y-3">
+              <p className="text-sm font-extrabold text-gray-900">포트폴리오</p>
+              <div className="flex items-center justify-between gap-3 rounded-xl border border-dashed border-gray-300 px-4 py-4">
+                {resume.has_portfolio ? (
+                  <button
+                    type="button"
+                    onClick={openPortfolio}
+                    className="text-sm font-semibold text-brand underline"
+                  >
+                    portfolio.pdf (눌러서 보기)
+                  </button>
+                ) : (
+                  <p className="text-sm text-gray-400">
+                    포트폴리오 파일을 첨부하세요 (PDF, 20MB 이하)
+                  </p>
+                )}
+                <label className="cursor-pointer rounded-lg border border-brand bg-white px-3 py-1.5 text-xs font-bold text-brand hover:bg-brand-soft transition-colors">
+                  {resume.has_portfolio
+                    ? "다른 파일로 바꾸기"
+                    : "포트폴리오 첨부하기"}
+                  <input
+                    type="file"
+                    accept=".pdf,application/pdf"
+                    onChange={uploadPortfolio}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+            </div>
             {/* 맨 아래: 저장 */}
             <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
               {resumeMessage && (
                 <p className="text-xs font-medium text-brand">
                   {resumeMessage}
                 </p>
+              )}
+              {resume.has_portfolio && (
+                <button
+                  type="button"
+                  onClick={deletePortfolio}
+                  className="rounded-xl border border-danger-border bg-white px-6 py-3 text-sm font-semibold text-danger hover:bg-danger-bg transition-colors"
+                >
+                  포트폴리오 삭제
+                </button>
               )}
               <button
                 type="button"

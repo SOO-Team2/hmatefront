@@ -89,10 +89,6 @@ function FindAccountModal({ initialTab = "id", onClose, onSwitchToLogin }) {
       setResetError("새 비밀번호를 입력해 주세요.");
       return;
     }
-    if (newPassword.length < 4) {
-      setResetError("비밀번호는 최소 4자 이상이어야 합니다.");
-      return;
-    }
     if (newPassword !== confirmPassword) {
       setResetError("새 비밀번호가 일치하지 않습니다.");
       return;

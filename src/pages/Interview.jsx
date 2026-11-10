@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router";
 import ClModal from "../components/modals/ClModal";
 import ResumeModal from "../components/modals/ResumeModal";
 
@@ -118,6 +119,7 @@ const JOB_CATS = {
 };
 
 function Interview() {
+  const navigate = useNavigate();
   const [catMajor, setCatMajor] = useState("기획·전략"); // 직무 대분류
   const [catMinor, setCatMinor] = useState("경영·비즈니스기획"); // 직무 소분류
   const [resumePdf, setResumePdf] = useState(null); // 이력서 PDF
@@ -127,8 +129,8 @@ function Interview() {
   const [evidences, setEvidences] = useState([]); // 근거 문장
   const [filenames, setFilenames] = useState([]); // 해시 파일명
   const [isGenerating, setIsGenerating] = useState(false); // 질문 생성 중 여부
-  const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0);  // 현재 진행 중인 카테고리 인덱스 (0: 지원 동기 ~ 3: 입사 후 포부)
-  const [completedCategories, setCompletedCategories] = useState([]);  // 답변이 완료된 카테고리 인덱스 목록
+  const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0); // 현재 진행 중인 카테고리 인덱스 (0: 지원 동기 ~ 3: 입사 후 포부)
+  const [completedCategories, setCompletedCategories] = useState([]); // 답변이 완료된 카테고리 인덱스 목록
 
   const [showResumeModal, setShowResumeModal] = useState(false); // 이력서 모달 열림
   const [showClModal, setShowClModal] = useState(false); // 자기소개서 모달 열림
@@ -141,7 +143,7 @@ function Interview() {
     setEvidences([]);
     setFilenames([]);
     setIsGenerating(true);
-    // [꼬리질문/진행도 초기화] 새 질문 생성 시 1번째 카테고리(지원 동기)부터 시작
+    // [심층질문/진행도 초기화] 새 질문 생성 시 1번째 카테고리(지원 동기)부터 시작
     setCurrentCategoryIndex(0);
     setCompletedCategories([]);
 
@@ -155,14 +157,33 @@ function Interview() {
       setIsGenerating(false);
     }, 2000);
   };
+  const handleAuthError = () => {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("user");
+    window.dispatchEvent(new Event("authChange"));
+    window.alert("로그인이 필요하거나 로그인 세션이 만료되었습니다. 홈 화면으로 이동합니다.");
+    navigate("/");
+  };
+
   // 답변과 서류를 비교해서, 결과를 그 답변 메시지에 붙인다
-  const verifyAnswer = async (answerIndex, text, targetFilenames = filenames) => {
+  const verifyAnswer = async (
+    answerIndex,
+    text,
+    targetFilenames = filenames,
+  ) => {
     try {
       const res = await fetch(`${API_URL}/verify`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        },
         body: JSON.stringify({ answer: text, filenames: targetFilenames }),
       });
+      if (res.status === 401) {
+        handleAuthError();
+        return;
+      }
       if (!res.ok) return;
       const data = await res.json();
       setMessages((prev) =>
@@ -179,6 +200,12 @@ function Interview() {
 
   const submitAnswer = async (e) => {
     if (isGenerating) return;
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      handleAuthError();
+      return;
+    }
+
     const textarea =
       e.currentTarget.tagName === "TEXTAREA"
         ? e.currentTarget
@@ -203,9 +230,23 @@ function Interview() {
         else if (myCl) formData.append("my_cl", myCl.text);
         const res = await fetch(`${API_URL}/question`, {
           method: "POST",
-          body: formData, //FormData는 headers 쓰면 안 됨
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
         });
+        if (res.status === 401) {
+          handleAuthError();
+          return;
+        }
+        if (!res.ok) {
+          throw new Error("질문 생성 요청에 실패했습니다.");
+        }
+
         const data = await res.json();
+        if (!data.question) {
+          throw new Error("생성된 질문이 없습니다.");
+        }
         const newFilenames = data.filenames || [];
         setFilenames(newFilenames);
         setEvidences([data.evidences || []]);
@@ -220,7 +261,11 @@ function Interview() {
         ]);
         verifyAnswer(answerIndex, text, newFilenames);
       } catch {
-        // 질문 생성 실패 처리
+        setMessages((prev) => prev.slice(0, answerIndex));
+        textarea.value = text;
+        window.alert(
+          "질문 생성에 실패했습니다. 답변을 확인하고 다시 시도해 주세요.",
+        );
       } finally {
         setIsGenerating(false);
       }
@@ -235,12 +280,15 @@ function Interview() {
         lastQuestionMsg?.category || CATEGORIES[currentCategoryIndex];
       const job = title.split(" > ")[1] || catMinor;
 
-      // [꼬리질문 판단] 직전 질문이 메인 질문인 경우(/followup API 호출)
-      // 백엔드에서 답변 내용을 분석해 꼬리질문이 필요한지 판단
+      // [심층질문 판단] 직전 질문이 메인 질문인 경우(/followup API 호출)
+      // 백엔드에서 답변 내용을 분석해 심층질문이 필요한지 판단
       if (!lastQuestionMsg?.isFollowup) {
         const followupRes = await fetch(`${API_URL}/followup`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
           body: JSON.stringify({
             category: currentCategory,
             job,
@@ -250,25 +298,36 @@ function Interview() {
           }),
         });
 
-        if (followupRes.ok) {
-          const followupData = await followupRes.json();
-          // 백엔드에서 꼬리질문 생성이 필요하다고 판단한 경우
-          if (followupData.is_followup && followupData.question) {
-            setMessages((prev) => [
-              ...prev,
-              {
-                type: "question",
-                category: currentCategory,
-                text: followupData.question,
-                isFollowup: true, // 꼬리질문 플래그 등록
-              },
-            ]);
-            return; // 카테고리를 넘기지 않고 꼬리질문 답변 대기
+        if (followupRes.status === 401) {
+          handleAuthError();
+          return;
+        }
+
+        if (!followupRes.ok) {
+          throw new Error("심층 질문 요청에 실패했습니다.");
+        }
+
+        const followupData = await followupRes.json();
+        // 백엔드에서 심층질문 생성이 필요하다고 판단한 경우
+        if (followupData.is_followup) {
+          if (!followupData.question) {
+            throw new Error("심층 질문이 비어 있습니다.");
           }
+
+          setMessages((prev) => [
+            ...prev,
+            {
+              type: "question",
+              category: currentCategory,
+              text: followupData.question,
+              isFollowup: true,
+            },
+          ]);
+          return; // 카테고리를 넘기지 않고 심층질문 답변 대기
         }
       }
 
-      // [카테고리 완료] 꼬리질문이 불필요하거나, 이미 꼬리질문 답변을 마친 경우 현재 카테고리 완료
+      // [카테고리 완료] 심층질문이 불필요하거나, 이미 심층질문 답변을 마친 경우 현재 카테고리 완료
       setCompletedCategories((prev) =>
         prev.includes(currentCategoryIndex)
           ? prev
@@ -296,14 +355,31 @@ function Interview() {
       setCurrentCategoryIndex(nextCategoryIndex);
       const res = await fetch(`${API_URL}/answer`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
           category: nextCategory,
           job,
           filenames,
         }),
       });
+
+      if (res.status === 401) {
+        handleAuthError();
+        return;
+      }
+
+      if (!res.ok) {
+        throw new Error("다음 질문 요청에 실패했습니다.");
+      }
+
       const data = await res.json();
+      if (!data.question) {
+        throw new Error("생성된 질문이 없습니다.");
+      }
+
       setEvidences((prev) => [...prev, data.evidences || []]);
       setMessages((prev) => [
         ...prev,
@@ -315,7 +391,15 @@ function Interview() {
         },
       ]);
     } catch {
-      // 답변에 따른 다음 질문 생성 실패 처리
+      setMessages((prev) => prev.slice(0, answerIndex));
+      textarea.value = text;
+      setCompletedCategories((prev) =>
+        prev.filter((index) => index !== currentCategoryIndex),
+      );
+      setCurrentCategoryIndex(currentCategoryIndex);
+      window.alert(
+        "질문 생성에 실패했습니다. 답변을 확인하고 다시 시도해 주세요.",
+      );
     } finally {
       setIsGenerating(false);
     }
@@ -445,7 +529,9 @@ function Interview() {
               disabled={isGenerating}
               className="btn-main w-full whitespace-nowrap rounded-xl bg-brand px-4 py-2.5 text-xs font-bold text-white hover:bg-brand-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={askQuestion}
-            > 면접 시작
+            >
+              {" "}
+              면접 시작
             </button>
           </div>
         </div>
@@ -454,7 +540,7 @@ function Interview() {
           <label className="block text-xs font-bold text-gray-700 mb-2.5">
             질문 항목
           </label>
-          {/* 꼬리질문 유무와 무관하게 각 카테고리가 완료(답변 제출)되었는지를 completedCategories로 판별 */}
+          {/* 심층질문 유무와 무관하게 각 카테고리가 완료(답변 제출)되었는지를 completedCategories로 판별 */}
           <div className="q-list grid grid-cols-2 md:grid-cols-4 gap-3">
             <div
               className={`q-item rounded-xl border p-4 ${
@@ -565,9 +651,7 @@ function Interview() {
                 >
                   <span
                     className={`font-extrabold mr-1.5 ${
-                      evidences.length === 1
-                        ? "text-brand"
-                        : "text-gray-500"
+                      evidences.length === 1 ? "text-brand" : "text-gray-500"
                     }`}
                   >
                     [1-{i + 1}]
@@ -593,9 +677,7 @@ function Interview() {
                 >
                   <span
                     className={`font-extrabold mr-1.5 ${
-                      evidences.length === 2
-                        ? "text-brand"
-                        : "text-gray-500"
+                      evidences.length === 2 ? "text-brand" : "text-gray-500"
                     }`}
                   >
                     [2-{i + 1}]
@@ -621,9 +703,7 @@ function Interview() {
                 >
                   <span
                     className={`font-extrabold mr-1.5 ${
-                      evidences.length === 3
-                        ? "text-brand"
-                        : "text-gray-500"
+                      evidences.length === 3 ? "text-brand" : "text-gray-500"
                     }`}
                   >
                     [3-{i + 1}]
@@ -700,7 +780,7 @@ function Interview() {
                       style={{ backgroundColor: "#D97706", color: "#ffffff" }}
                       className="inline-block rounded-md px-2.5 py-0.5 text-xs font-bold mr-1.5 shadow-2xs"
                     >
-                      꼬리 질문
+                      심층 질문
                     </span>
                   )}
                   {evidences[CATEGORIES.indexOf(msg.category)]?.length > 0 && (
@@ -730,7 +810,10 @@ function Interview() {
                     <div className="flex items-center gap-2">
                       <span>⚠️</span>
                       <h4 className="text-sm font-extrabold">
-                      {[...new Set(msg.mismatches.map((item) => item.source))].join("·")}와 다른 부분이 있어요
+                        {[
+                          ...new Set(msg.mismatches.map((item) => item.source)),
+                        ].join("·")}
+                        와 다른 부분이 있어요
                       </h4>
                     </div>
                     {msg.mismatches.map((item, j) => (
@@ -790,7 +873,9 @@ function Interview() {
             disabled={isGenerating || messages.length === 0}
             className="btn-main shrink-0 rounded-xl bg-brand px-5 py-3 text-sm font-bold text-white hover:bg-brand-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={submitAnswer}
-          > 전송
+          >
+            {" "}
+            전송
           </button>
         </div>
       </div>
