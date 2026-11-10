@@ -164,7 +164,7 @@ function Interview() {
         lastQuestionMsg?.category || CATEGORIES[currentCategoryIndex];
       const job = title.split(" > ")[1] || jobCat.minor;
 
-      // [꼬리질문 판단] 직전 질문이 메인 질문이고, 회원이거나 꼬리질문이 나온 적 없을 때(/followup API 호출)
+      // [심층질문 판단] 직전 질문이 메인 질문이고, 회원이거나 심층질문이 나온 적 없을 때(/followup API 호출)
       if (
         !lastQuestionMsg?.isFollowup &&
         (token || !messages.some((m) => m.isFollowup))
@@ -213,7 +213,7 @@ function Interview() {
         }
       }
 
-      // [카테고리 완료] 꼬리질문이 불필요하거나, 이미 꼬리질문 답변을 마친 경우 다음 카테고리로 진행
+      // [카테고리 완료] 심층질문이 불필요하거나, 이미 심층질문 답변을 마친 경우 다음 카테고리로 진행
       const nextCategoryIndex = currentCategoryIndex + 1;
       setCurrentCategoryIndex(nextCategoryIndex);
       const nextCategory =
@@ -416,7 +416,7 @@ function Interview() {
           <label className="block text-xs font-bold text-gray-700 mb-2.5">
             질문 항목
           </label>
-          {/* 꼬리질문 유무와 무관하게 각 카테고리가 완료(답변 제출)되었는지를 idx < currentCategoryIndex로 판별 */}
+          {/* 심층질문 유무와 무관하게 각 카테고리가 완료(답변 제출)되었는지를 idx < currentCategoryIndex로 판별 */}
           <div className="q-list grid grid-cols-2 md:grid-cols-4 gap-3">
             {CATEGORIES.map((cat, idx) => (
               <div
