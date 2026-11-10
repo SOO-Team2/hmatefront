@@ -20,6 +20,7 @@ function Interview() {
   const [filenames, setFilenames] = useState([]); // 해시 파일명
   const [isGenerating, setIsGenerating] = useState(false); // 질문 생성 중 여부
   const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0); // 현재 진행 중인 카테고리 인덱스 (0: 지원 동기 ~ 3: 입사 후 포부)
+  const [isSaved, setIsSaved] = useState(false); // 이번 면접을 저장했는지
   const token = localStorage.getItem("access_token"); // 로그인 토큰 (없으면 비회원)
   const navigate = useNavigate(); // 페이지 이동 함수
 
@@ -28,6 +29,7 @@ function Interview() {
     setMessages([]);
     setEvidences([]);
     setFilenames([]);
+    setIsSaved(false);
     setIsGenerating(true);
     // [심층질문/진행도 초기화] 새 질문 생성 시 1번째 카테고리(지원 동기)부터 시작
     setCurrentCategoryIndex(0);
@@ -46,8 +48,47 @@ function Interview() {
     localStorage.removeItem("access_token");
     localStorage.removeItem("user");
     window.dispatchEvent(new Event("authChange"));
-    window.alert("로그인이 필요하거나 로그인 세션이 만료되었습니다. 홈 화면으로 이동합니다.");
+    window.alert(
+      "로그인이 필요하거나 로그인 세션이 만료되었습니다. 홈 화면으로 이동합니다.",
+    );
     navigate("/");
+  };
+
+  // 질문과 그 뒤 답변을 한 쌍으로 묶어서 저장한다
+  const saveInterview = async () => {
+    const dialogues = [];
+    messages.forEach((msg) => {
+      if (msg.type === "question") {
+        dialogues.push({ question: msg.text, answer: null });
+      } else if (msg.type === "answer" && dialogues.length) {
+        dialogues.at(-1).answer = msg.text; // 바로 앞 질문에 답변 붙이기
+      }
+    });
+    if (!dialogues.length) {
+      window.alert("저장할 대화가 없어요.");
+      return;
+    }
+
+    const [major, minor] = title.split(" > "); // 면접 시작할 때의 직무
+    try {
+      const res = await fetch(`${API_URL}/interview/save`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        },
+        body: JSON.stringify({ cat_major: major, cat_minor: minor, dialogues }),
+      });
+      if (res.status === 401) {
+        handleAuthError();
+        return;
+      }
+      if (!res.ok) throw new Error("저장 실패");
+      setIsSaved(true);
+      window.alert("대화를 저장했어요. 마이페이지에서 볼 수 있어요.");
+    } catch {
+      window.alert("저장하지 못했습니다. 다시 시도해 주세요.");
+    }
   };
 
   // 답변과 서류를 비교해서, 결과를 그 답변 메시지에 붙인다
@@ -502,9 +543,11 @@ function Interview() {
           {token && (
             <button
               type="button"
-              className="rounded-xl border border-brand bg-white px-4 py-2 text-xs font-bold text-brand hover:bg-brand-soft transition-colors"
+              onClick={saveInterview}
+              disabled={isSaved || isGenerating || !messages.length}
+              className="rounded-xl border border-brand bg-white px-4 py-2 text-xs font-bold text-brand hover:bg-brand-soft transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              대화 저장
+              {isSaved ? "저장됨" : "대화 저장"}
             </button>
           )}
         </div>
