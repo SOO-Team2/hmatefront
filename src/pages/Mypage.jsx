@@ -670,7 +670,7 @@ function Mypage() {
                       onClick={() => toggleDialogues(iv.interview_id)}
                       className="rounded-lg border border-brand bg-white px-3.5 py-1.5 text-xs font-bold text-brand hover:bg-brand-soft transition-colors"
                     >
-                      {openId === iv.interview_id ? "대화 닫기" : "대화 보기"}
+                      {openId === iv.interview_id ? "닫기" : "보기"}
                     </button>
                     <button
                       type="button"

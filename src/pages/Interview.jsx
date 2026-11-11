@@ -174,8 +174,9 @@ function Interview() {
           throw new Error("생성된 질문이 없습니다.");
         }
         const newFilenames = data.filenames || [];
+        const firstEvidences = data.evidences || [];
         setFilenames(newFilenames);
-        setEvidences([data.evidences || []]);
+        setEvidences([firstEvidences]);
         setMessages((prev) => [
           ...prev,
           {
@@ -183,6 +184,7 @@ function Interview() {
             category: CATEGORIES[0],
             text: data.question,
             isFollowup: false,
+            evidenceIndex: firstEvidences.length > 0 ? 1 : null,
           },
         ]);
         verifyAnswer(answerIndex, text, newFilenames);
@@ -263,7 +265,7 @@ function Interview() {
               evidenceIndex:
                 newEvidences.length > 0
                   ? currentEvCount + newEvidences.length
-                  : currentEvCount || 1,
+                  : null,
             },
           ]);
           return; // 카테고리를 넘기지 않고 심층질문 답변 대기
@@ -291,9 +293,20 @@ function Interview() {
       }
 
       // [다음 카테고리 이동] 다음 카테고리 메인 질문 생성 (/answer API 호출)
-      const previousQuestions = messages
-        .filter((m) => m.type === "question" && m.text)
-        .map((m) => m.text);
+      // 이전 대화 기록 (질문-답변 쌍)
+      const previousDialogues = [];
+      let lastQ = null;
+      for (const m of messages) {
+        if (m.type === "question" && m.text) {
+          lastQ = m.text;
+        } else if (m.type === "answer" && m.text && lastQ) {
+          previousDialogues.push({ question: lastQ, answer: m.text });
+          lastQ = null;
+        }
+      }
+      if (lastQ && text) {
+        previousDialogues.push({ question: lastQ, answer: text });
+      }
 
       const res = await fetch(`${API_URL}/answer`, {
         method: "POST",
@@ -305,7 +318,8 @@ function Interview() {
           category: nextCategory,
           job,
           filenames,
-          previous_questions: previousQuestions,
+          previous_dialogues: previousDialogues,
+          used_evidences: evidences.flat(),
         }),
       });
 
@@ -323,7 +337,8 @@ function Interview() {
         throw new Error("생성된 질문이 없습니다.");
       }
 
-      setEvidences((prev) => [...prev, data.evidences || []]);
+      const nextEvidences = data.evidences || [];
+      setEvidences((prev) => [...prev, nextEvidences]);
       setMessages((prev) => [
         ...prev,
         {
@@ -331,6 +346,7 @@ function Interview() {
           category: nextCategory,
           text: data.question,
           isFollowup: false, // 새 카테고리의 메인 질문
+          evidenceIndex: nextEvidences.length > 0 ? 1 : null,
         },
       ]);
     } catch {
@@ -592,10 +608,10 @@ function Interview() {
                       {msg.category}
                     </span>
                   )}
-                  {evidences[CATEGORIES.indexOf(msg.category)]?.length > 0 && (
+                  {msg.evidenceIndex && (
                     <span className="inline-block rounded-md bg-brand-light px-2.5 py-0.5 text-xs font-bold text-brand">
                       참고 [{CATEGORIES.indexOf(msg.category) + 1}-
-                      {msg.evidenceIndex || 1}]
+                      {msg.evidenceIndex}]
                     </span>
                   )}
                   <div
