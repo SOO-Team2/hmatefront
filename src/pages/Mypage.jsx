@@ -99,47 +99,6 @@ function Mypage() {
       alert("서버에 연결할 수 없습니다");
     }
   };
-  // 수정 중인 자소서 번호 (null = 수정 중 아님)와 입력칸 값
-  const [editingId, setEditingId] = useState(null);
-  const [editForm, setEditForm] = useState({});
-
-  // 수정 버튼: 그 카드의 지금 내용을 입력칸에 채운다 (빈 칸은 null 대신 빈 글자로)
-  const startEdit = (cl) => {
-    setEditingId(cl.cl_id);
-    setEditForm({
-      title: cl.title,
-      motivation: cl.motivation ?? "",
-      experience: cl.experience ?? "",
-      personality: cl.personality ?? "",
-      plan: cl.plan ?? "",
-    });
-  };
-
-  // 수정 저장: 서버에 보내고, 성공하면 목록에서 그 카드만 바꾼다
-  const saveEdit = async () => {
-    try {
-      const res = await fetch(`${API_URL}/mypage/cl/${editingId}`, {
-        method: "PUT",
-        headers,
-        body: JSON.stringify(editForm),
-      });
-      if (res.ok) {
-        const updated = await res.json();
-        setCls(cls.map((cl) => (cl.cl_id === editingId ? updated : cl)));
-        setEditingId(null);
-      } else {
-        // 서버가 보낸 실패 이유(detail)를 보여 준다. 글자(문자열)가 아니면 기본 문구
-        const data = await res.json().catch(() => ({}));
-        alert(
-          typeof data.detail === "string"
-            ? data.detail
-            : "저장 중 오류가 발생했습니다.",
-        );
-      }
-    } catch {
-      alert("서버에 연결할 수 없습니다.");
-    }
-  };
 
   // 대화 보기 버튼: 닫혀 있으면 서버에서 대화를 받아 펼치고, 열려 있으면 닫는다
   const toggleDialogues = async (interviewId) => {
@@ -443,97 +402,49 @@ function Mypage() {
               </p>
             )}
 
-            {cls.map((cl) =>
-              editingId === cl.cl_id ? (
-                /* 수정 중인 카드: 입력칸 */
-                <div
-                  key={cl.cl_id}
-                  className="rounded-2xl border border-brand-border bg-white p-6 space-y-4"
-                >
-                  <input
-                    type="text"
-                    value={editForm.title}
-                    onChange={(e) =>
-                      setEditForm({ ...editForm, title: e.target.value })
-                    }
-                    className="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-bold text-gray-900 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15"
-                  />
-                  {SECTIONS.map(([key, label]) => (
-                    <div key={key} className="space-y-1.5">
-                      <h4 className="text-xs font-extrabold text-gray-800">
-                        {label}
-                      </h4>
-                      <textarea
-                        value={editForm[key]}
-                        onChange={(e) =>
-                          setEditForm({ ...editForm, [key]: e.target.value })
-                        }
-                        className="w-full min-h-[110px] rounded-xl border border-gray-200 p-3.5 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15 resize-y"
-                      />
-                    </div>
-                  ))}
-                  <div className="flex items-center gap-2 pt-1">
-                    <button
-                      type="button"
-                      onClick={saveEdit}
-                      className="rounded-xl bg-brand px-4 py-2 text-xs font-bold text-white hover:bg-brand-hover transition-colors"
-                    >
-                      저장
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setEditingId(null)}
-                      className="rounded-xl border border-gray-300 bg-white px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      취소
-                    </button>
-                  </div>
+            {cls.map((cl) => (
+              /* 자소서 카드: 보기 */
+              <div
+                key={cl.cl_id}
+                className="rounded-2xl border border-gray-200 bg-white overflow-hidden"
+              >
+                <div className="flex items-center justify-between gap-2 px-6 py-4 border-b border-gray-100">
+                  <h3 className="text-base font-extrabold text-gray-900 mr-auto">
+                    {cl.title}
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => navigate("/cl", { state: { cl } })}
+                    className="rounded-lg border border-brand bg-white px-3 py-1.5 text-xs font-bold text-brand hover:bg-brand-soft transition-colors"
+                  >
+                    수정
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => deleteCl(cl.cl_id)}
+                    className="rounded-lg border border-danger-border bg-white px-3 py-1.5 text-xs font-semibold text-danger hover:bg-danger-bg transition-colors"
+                  >
+                    삭제
+                  </button>
                 </div>
-              ) : (
-                /* 보통 카드: 보기 */
-                <div
-                  key={cl.cl_id}
-                  className="rounded-2xl border border-gray-200 bg-white overflow-hidden"
-                >
-                  <div className="flex items-center justify-between gap-2 px-6 py-4 border-b border-gray-100">
-                    <h3 className="text-base font-extrabold text-gray-900 mr-auto">
-                      {cl.title}
-                    </h3>
-                    <button
-                      type="button"
-                      onClick={() => startEdit(cl)}
-                      className="rounded-lg border border-brand bg-white px-3 py-1.5 text-xs font-bold text-brand hover:bg-brand-soft transition-colors"
-                    >
-                      수정
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => deleteCl(cl.cl_id)}
-                      className="rounded-lg border border-danger-border bg-white px-3 py-1.5 text-xs font-semibold text-danger hover:bg-danger-bg transition-colors"
-                    >
-                      삭제
-                    </button>
-                  </div>
-
-                  {/* 4칸 중 내용이 있는 칸만 보여준다 */}
-                  <div className="p-6 space-y-4">
-                    {SECTIONS.map(
-                      ([key, label]) =>
-                        cl[key] && (
-                          <div key={key} className="space-y-1">
-                            <h4 className="text-xs font-extrabold text-gray-900">
-                              {label}
-                            </h4>
-                            <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
-                              {cl[key]}
-                            </p>
-                          </div>
-                        ),
-                    )}
-                  </div>
+                {/* 4칸 중 내용이 있는 칸만 보여준다 */}
+                <div className="p-6 space-y-4">
+                  {SECTIONS.map(
+                    ([key, label]) =>
+                      cl[key] && (
+                        <div key={key} className="space-y-1">
+                          <h4 className="text-xs font-extrabold text-gray-900">
+                            {label}
+                          </h4>
+                          <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                            {cl[key]}
+                          </p>
+                        </div>
+                      ),
+                  )}
                 </div>
-              ),
-            )}
+              </div>
+            ))}
           </section>
         )}
 

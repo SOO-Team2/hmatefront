@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router";
 
 // ---------------------------------------------------------------------------
 // 설정
@@ -12,14 +13,17 @@ const MEMBER_LIMIT = 4000;
 const count = (text) => text.replace(/\s/g, "").length;
 
 function Cl() {
+  // 마이페이지 "수정"으로 들어오면 그 자소서, 그냥 들어오면 undefined
+  const editCl = useLocation().state?.cl;
+
   // ---------------------------------------------------------------------------
   // 자소서 입력
   // ---------------------------------------------------------------------------
 
-  const [motivation, setMotivation] = useState("");
-  const [experience, setExperience] = useState("");
-  const [personality, setPersonality] = useState("");
-  const [plan, setPlan] = useState("");
+  const [motivation, setMotivation] = useState(editCl?.motivation ?? "");
+  const [experience, setExperience] = useState(editCl?.experience ?? "");
+  const [personality, setPersonality] = useState(editCl?.personality ?? "");
+  const [plan, setPlan] = useState(editCl?.plan ?? "");
 
   // 저장된 토큰. LoginModal이 "access_token" 이름으로 저장함
   const token = localStorage.getItem("access_token");
@@ -61,7 +65,7 @@ function Cl() {
   // ---------------------------------------------------------------------------
 
   // 제목 입력칸의 글
-  const [title, setTitle] = useState("");
+  const [title, setTitle] = useState(editCl?.title ?? "");
   const [titleLoading, setTitleLoading] = useState(false);
   const [titleError, setTitleError] = useState("");
 
@@ -82,9 +86,7 @@ function Cl() {
       const data = await res.json(); // 서버의 답을 읽기
       setTitle(data.titles[0]); // 제목 칸에 넣기 → 화면에 보임
     } catch {
-      setTitleError(
-        "서버에 연결할 수 없습니다.",
-      );
+      setTitleError("서버에 연결할 수 없습니다.");
     } finally {
       setTitleLoading(false);
     }
@@ -178,10 +180,13 @@ function Cl() {
   // 저장 중인지, 저장 결과 문구 (빈 글자 = 없음)
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
-  // 이미 저장한 자소서 번호 (null = 아직 저장 안 함)
-  const [savedId, setSavedId] = useState(null);
+  // 이미 저장한 자소서 번호 (null = 아직 저장 안 함, 수정으로 들어오면 그 번호)
+  const [savedId, setSavedId] = useState(editCl?.cl_id ?? null);
   // 마지막으로 저장한 글 (지금 글과 다르면 저장 안 한 내용이 있는 것)
-  const [savedText, setSavedText] = useState("");
+  // 수정으로 들어오면 불러온 글이 곧 저장한 글이다
+  const [savedText, setSavedText] = useState(
+    title + motivation + experience + personality + plan,
+  );
   const currentText = title + motivation + experience + personality + plan;
   const hasUnsaved = currentText !== savedText;
 
@@ -193,7 +198,9 @@ function Cl() {
     const onClick = (e) => {
       const link = e.target.closest("a");
       if (!link || link.pathname === window.location.pathname) return; // 링크가 아니거나 같은 페이지면 통과
-      if (!confirm("저장되지 않은 내용이 있습니다. 페이지를 이동하시겠습니까?")) {
+      if (
+        !confirm("저장되지 않은 내용이 있습니다. 페이지를 이동하시겠습니까?")
+      ) {
         e.preventDefault(); // 취소를 누르면 이동을 막는다
         e.stopPropagation();
       }
@@ -213,7 +220,7 @@ function Cl() {
   const save = async () => {
     setSaveMessage(""); // ① 지난 문구 지우기
     setSaving(true); // ② "저장 중" 켜기 → 버튼 꺼짐
-try {
+    try {
       // ③ 처음이면 새로 저장, 저장한 적 있으면 덮어쓰기
       const res = await fetch(
         savedId ? `${API_URL}/mypage/cl/${savedId}` : `${API_URL}/cl/save`,
@@ -241,16 +248,14 @@ try {
       }
     } catch {
       // ⑦ 연결 실패 (서버 꺼짐, 와이파이 다름)
-      setSaveMessage(
-        "서버에 연결할 수 없습니다.",
-      );
+      setSaveMessage("서버에 연결할 수 없습니다.");
     } finally {
       // ⑧ 성공이든 실패든 마지막에
       setSaving(false); //  "저장 중" 끄기 → 버튼 다시 켜짐
       setTimeout(() => setSaveMessage(""), 3000);
     }
   };
-    
+
   // ---------------------------------------------------------------------------
   // 화면
   // ---------------------------------------------------------------------------
@@ -292,7 +297,9 @@ try {
               onClick={askTitle}
               disabled={titleLoading || total === 0}
               className="shrink-0 rounded-xl border border-brand bg-white px-4 py-3 text-sm font-bold text-brand hover:bg-brand-soft transition-colors disabled:border-gray-200 disabled:text-gray-400 disabled:hover:bg-transparent"
-            > 제목 추천
+            >
+              {" "}
+              제목 추천
             </button>
           </div>
           {titleError && (
@@ -406,14 +413,18 @@ try {
           </div>
           <div className="flex items-center gap-3 ml-auto">
             {saveMessage && (
-              <p className="text-xs font-medium text-brand mr-2">{saveMessage}</p>
+              <p className="text-xs font-medium text-brand mr-2">
+                {saveMessage}
+              </p>
             )}
             <button
               type="button"
               onClick={save}
               disabled={saving || total === 0 || !title.trim()}
               className="rounded-xl border border-gray-300 bg-white px-5 py-3 text-sm font-semibold text-gray-800 hover:bg-gray-50 transition-colors disabled:opacity-50"
-            > 저장하기
+            >
+              {" "}
+              저장하기
             </button>
           </div>
         </div>
