@@ -165,7 +165,7 @@ function Cl() {
     const next = current.replace(card.original, card.suggestion); // ③ 원문 → 수정안으로 바꾼 글
     if (!inLimit(card.section, next)) {
       // ④ 바꿔도 한도 안인가?
-      setError(`적용하면 글자 수 한도(${LIMIT}자)를 넘습니다.`);
+      setError(`글자 수 한도(${LIMIT}자)를 초과하여 적용할 수 없습니다.`);
       return;
     }
     setters[card.section](next); // ⑤ 그 칸에 반영
@@ -470,14 +470,14 @@ function Cl() {
             <div
               key={card.sentence_id}
               className={`rounded-2xl border p-5 space-y-3 ${
-                card.tag === "수정 필요"
+                card.tag === "수정 권장"
                   ? "border-gray-200 bg-white"
                   : "border-brand-border bg-white"
               }`}
             >
               <span
                 className={`inline-block rounded-md px-2.5 py-1 text-xs font-bold ${
-                  card.tag === "수정 필요"
+                  card.tag === "수정 권장"
                     ? "bg-warn-badge text-warn-text"
                     : "bg-brand-light text-brand"
                 }`}

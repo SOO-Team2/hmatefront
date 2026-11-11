@@ -115,7 +115,7 @@ function Home() {
                 {loggedIn ? "AI 면접" : "AI 면접 체험"}
               </h3>
               <p className="text-xs text-gray-500 mt-1.5">
-                {loggedIn ? "기본 4문항 · 맞춤 심층 질문 · 대화 저장" : "기본 2문항 · 심층 질문 1회 · 답변 검증"}
+                {loggedIn ? "기본 4문항 · 심층 질문 · 대화 저장" : "기본 2문항 · 심층 질문 1회 · 답변 검증"}
               </p>
             </div>
             <Link to="/interview" className="block">

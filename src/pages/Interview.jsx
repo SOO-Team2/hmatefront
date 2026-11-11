@@ -223,6 +223,7 @@ function Interview() {
             question: lastQuestionMsg.text,
             answer: text,
             filenames,
+            used_evidences: evidences[currentCategoryIndex] || [],
           }),
         });
 
@@ -242,6 +243,16 @@ function Interview() {
             throw new Error("심층 질문이 비어 있습니다.");
           }
 
+          const newEvidences = followupData.evidences || [];
+          const currentEvCount = evidences[currentCategoryIndex]?.length || 0;
+          if (newEvidences.length > 0) {
+            setEvidences((prev) =>
+              prev.map((arr, idx) =>
+                idx === currentCategoryIndex ? [...arr, ...newEvidences] : arr,
+              ),
+            );
+          }
+
           setMessages((prev) => [
             ...prev,
             {
@@ -249,6 +260,10 @@ function Interview() {
               category: currentCategory,
               text: followupData.question,
               isFollowup: true,
+              evidenceIndex:
+                newEvidences.length > 0
+                  ? currentEvCount + newEvidences.length
+                  : currentEvCount || 1,
             },
           ]);
           return; // 카테고리를 넘기지 않고 심층질문 답변 대기
@@ -491,7 +506,7 @@ function Interview() {
 
       <div
         id="iv-ev"
-        className="lg:col-span-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-2xs space-y-5"
+        className="lg:col-span-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-2xs space-y-6"
       >
         <h3 className="text-lg font-extrabold text-gray-900">참고 문장</h3>
         {evidences.length === 0 && (
@@ -502,16 +517,17 @@ function Interview() {
         {CATEGORIES.map(
           (cat, idx) =>
             evidences[idx]?.length > 0 && (
-              <div key={cat} className="ev-group space-y-2">
+              <div key={cat} className="ev-group space-y-2.5">
                 <p className="text-xs font-bold text-gray-500">
                   {"①②③④"[idx]} {cat}
                 </p>
-                <div className="q-list space-y-2">
+                <div className="q-list space-y-2.5">
                   {evidences[idx].map((ev, i) => (
                     <div
                       key={i}
                       className={`ev-item rounded-xl text-xs leading-relaxed ${
                         evidences.length === idx + 1 &&
+                        i === evidences[idx].length - 1 &&
                         messages.at(-1)?.type !== "end"
                           ? "border border-brand-border bg-brand-soft p-3 text-gray-800"
                           : "px-1 py-0.5 text-gray-500"
@@ -520,6 +536,7 @@ function Interview() {
                       <span
                         className={`font-extrabold mr-1.5 ${
                           evidences.length === idx + 1 &&
+                          i === evidences[idx].length - 1 &&
                           messages.at(-1)?.type !== "end"
                             ? "text-brand"
                             : "text-gray-500"
@@ -577,7 +594,8 @@ function Interview() {
                   )}
                   {evidences[CATEGORIES.indexOf(msg.category)]?.length > 0 && (
                     <span className="inline-block rounded-md bg-brand-light px-2.5 py-0.5 text-xs font-bold text-brand">
-                      참고 [{CATEGORIES.indexOf(msg.category) + 1}-1]
+                      참고 [{CATEGORIES.indexOf(msg.category) + 1}-
+                      {msg.evidenceIndex || 1}]
                     </span>
                   )}
                   <div

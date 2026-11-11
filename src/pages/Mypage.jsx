@@ -12,7 +12,7 @@ const SECTIONS = [
 // [칸 이름, 제목, 최대 글자 수, 필수인지]
 const RESUME_FIELDS = [
   ["name", "이름", 50, true],
-  ["school", "학교명", 100, true],
+  ["school", "학교", 100, true],
   ["major", "전공", 100, true],
   ["skill", "보유 기술 (예: Python, SQL 등)", 255, false],
 ];
@@ -197,7 +197,7 @@ function Mypage() {
   // 현재 선택된 사이드바 탭(시작탭 : 이력서)
   const [activeTab, setActiveTab] = useState("resume");
 
-  // 이력서 칸 하나 바꾸기 (이름, 학교명, 전공, 기술)
+  // 이력서 칸 하나 바꾸기 (이름, 학교, 전공, 기술)
   const changeResume = (key, value) => setResume({ ...resume, [key]: value });
 
   // 경력·자격증 목록에서 i번째 줄의 칸 하나 바꾸기
@@ -238,7 +238,7 @@ function Mypage() {
         setResumeMessage("저장했습니다.");
       } else if (res.status === 422) {
         setResumeMessage(
-          "이름·학교명·전공은 꼭 입력하고, 자격증명은 비우지 말아 주세요.",
+          "이름·학교·전공은 꼭 입력하고, 자격증명은 비우지 말아 주세요.",
         );
       } else {
         setResumeMessage("저장 중 오류가 발생했습니다.");
@@ -290,7 +290,7 @@ function Mypage() {
 
   // 포트폴리오 삭제
   const deletePortfolio = async () => {
-    if (!confirm("포트폴리오를 삭제하시겠습니까?")) return;
+    if (!confirm("삭제 후에는 복구할 수 없습니다. 정말 삭제하시겠습니까?")) return;
     try {
       const res = await fetch(`${API_URL}/mypage/resume/portfolio`, {
         method: "DELETE",
@@ -298,7 +298,7 @@ function Mypage() {
       });
       if (res.ok) {
         setResume({ ...resume, has_portfolio: false });
-        setResumeMessage("포트폴리오를 삭제했습니다.");
+        setResumeMessage("삭제했습니다.");
       } else {
         setResumeMessage("삭제 중 오류가 발생했습니다.");
       }
@@ -455,22 +455,29 @@ function Mypage() {
               이력서
             </h2>
 
-            {/* 이름, 학교명, 전공, 보유 기술 */}
-            {RESUME_FIELDS.map(([key, label, max, required]) => (
-              <div key={key}>
-                <p className="text-xs font-bold text-gray-800 mb-1.5">
-                  {label}
-                  {required && <span className="text-danger"> *</span>}
-                </p>
-                <input
-                  type="text"
-                  maxLength={max}
-                  value={resume[key] ?? ""}
-                  onChange={(e) => changeResume(key, e.target.value)}
-                  className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15"
-                />
-              </div>
-            ))}
+            {/* 이름, 학교, 전공, 보유 기술 */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-7">
+              {RESUME_FIELDS.map(([key, label, max, required]) => (
+                <div
+                  key={key}
+                  className={
+                    key === "school" || key === "major" ? "" : "sm:col-span-2"
+                  }
+                >
+                  <p className="text-xs font-bold text-gray-800 mb-1.5">
+                    {label}
+                    {required && <span className="text-danger"> *</span>}
+                  </p>
+                  <input
+                    type="text"
+                    maxLength={max}
+                    value={resume[key] ?? ""}
+                    onChange={(e) => changeResume(key, e.target.value)}
+                    className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15"
+                  />
+                </div>
+              ))}
+            </div>
 
             {/* 자격증 (여러 개) */}
             <div className="rounded-2xl border border-gray-200 p-5 space-y-3">
@@ -574,13 +581,13 @@ function Mypage() {
                   </button>
                 ) : (
                   <p className="text-sm text-gray-400">
-                    포트폴리오 파일을 첨부하세요 (PDF, 20MB 이하)
+                    파일을 업로드하세요 (.pdf, 20MB 이하)
                   </p>
                 )}
                 <label className="cursor-pointer rounded-lg border border-brand bg-white px-3 py-1.5 text-xs font-bold text-brand hover:bg-brand-soft transition-colors">
                   {resume.has_portfolio
-                    ? "다른 파일로 바꾸기"
-                    : "포트폴리오 첨부하기"}
+                    ? "파일 변경"
+                    : "파일 선택"}
                   <input
                     type="file"
                     accept=".pdf,application/pdf"
