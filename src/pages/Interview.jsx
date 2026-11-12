@@ -49,15 +49,18 @@ function Interview() {
     if (cl?.file) formData.append("cl_pdf", cl.file);
     else if (cl?.cl) formData.append("my_cl", cl.cl.text);
 
+    const headers = {};
+    if (currentToken) {
+      headers.Authorization = `Bearer ${currentToken}`;
+    }
+
     uploadTaskRef.current = fetch(`${API_URL}/upload`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${currentToken}`,
-      },
+      headers,
       body: formData,
     })
       .then((res) => {
-        if (res.status === 401) {
+        if (res.status === 401 && currentToken) {
           handleAuthError();
           return null;
         }
@@ -124,7 +127,7 @@ function Interview() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          Authorization: `Bearer ${currentToken}`,
         },
         body: JSON.stringify({ cat_major: major, cat_minor: minor, dialogues }),
       });
@@ -146,16 +149,19 @@ function Interview() {
     text,
     targetFilenames = filenames,
   ) => {
+    const currentToken = localStorage.getItem("access_token");
+    const headers = { "Content-Type": "application/json" };
+    if (currentToken) {
+      headers.Authorization = `Bearer ${currentToken}`;
+    }
+
     try {
       const res = await fetch(`${API_URL}/verify`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        },
+        headers,
         body: JSON.stringify({ answer: text, filenames: targetFilenames }),
       });
-      if (res.status === 401) {
+      if (res.status === 401 && currentToken) {
         handleAuthError();
         return;
       }
@@ -201,15 +207,18 @@ function Interview() {
         else if (cl?.cl) formData.append("my_cl", cl.cl.text);
       }
 
+      const headers = {};
+      if (currentToken) {
+        headers.Authorization = `Bearer ${currentToken}`;
+      }
+
       const res = await fetch(`${API_URL}/question`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${currentToken}`,
-        },
+        headers,
         body: formData,
       });
 
-      if (res.status === 401) {
+      if (res.status === 401 && currentToken) {
         handleAuthError();
         return;
       }
@@ -251,10 +260,7 @@ function Interview() {
   const submitAnswer = async (e) => {
     if (isGenerating) return;
     const token = localStorage.getItem("access_token");
-    if (!token) {
-      handleAuthError();
-      return;
-    }
+    const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
 
     const textarea =
       e.currentTarget.tagName === "TEXTAREA"
@@ -291,7 +297,7 @@ function Interview() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+            ...authHeaders,
           },
           body: JSON.stringify({
             category: currentCategory,
@@ -303,7 +309,7 @@ function Interview() {
           }),
         });
 
-        if (followupRes.status === 401) {
+        if (followupRes.status === 401 && token) {
           handleAuthError();
           return;
         }
@@ -386,7 +392,7 @@ function Interview() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          ...authHeaders,
         },
         body: JSON.stringify({
           category: nextCategory,
@@ -397,7 +403,7 @@ function Interview() {
         }),
       });
 
-      if (res.status === 401) {
+      if (res.status === 401 && token) {
         handleAuthError();
         return;
       }

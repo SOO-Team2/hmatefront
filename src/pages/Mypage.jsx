@@ -457,11 +457,11 @@ function Mypage() {
                           </div>
                         ),
                     )}
-                    <div className="flex justify-start">
+                    <div className="flex justify-start pt-6">
                       <button
                         type="button"
                         onClick={() => navigate("/cl", { state: { cl } })}
-                        className="rounded-lg bg-brand px-3.5 py-1.5 text-xs font-bold text-white hover:bg-brand-hover transition-colors"
+                        className="rounded-xl bg-brand px-5 py-2.5 text-sm font-bold text-white hover:bg-brand-hover transition-colors shadow-2xs"
                       >
                         수정
                       </button>
