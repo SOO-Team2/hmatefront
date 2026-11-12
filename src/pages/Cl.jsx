@@ -243,6 +243,10 @@ function Cl() {
         setSaveMessage("저장됨"); // ④ 성공
       } else if (res.status === 401) {
         setSaveMessage("로그인 후 저장할 수 있습니다."); // ⑤ 로그인 안 함
+      } else if (res.status === 403) {
+        setSaveMessage(
+          "문서 저장 동의 후 저장할 수 있어요. 마이페이지에서 동의를 바꿔 주세요.",
+        ); // 저장 동의 안 함
       } else {
         setSaveMessage("저장 중 오류가 발생했습니다."); // ⑥ 그 밖의 실패 (400, 500 등)
       }

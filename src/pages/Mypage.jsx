@@ -240,6 +240,8 @@ function Mypage() {
         setResumeMessage(
           "이름·학교·전공은 꼭 입력하고, 자격증명은 비우지 말아 주세요.",
         );
+      } else if (res.status === 403) {
+        setResumeMessage("문서 저장 동의 후 저장할 수 있어요. 아래에서 동의를 바꿔 주세요.");
       } else {
         setResumeMessage("저장 중 오류가 발생했습니다.");
       }
