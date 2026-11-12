@@ -46,6 +46,8 @@ function Mypage() {
 
   // 서버에서 받은 내 자소서 목록
   const [cls, setCls] = useState([]);
+  // 펼쳐 둔 자소서 번호 (null이면 모두 닫힘)
+  const [openClId, setOpenClId] = useState(null);
   // 내 이력서(mypage.py의 ResumeIn)
   const [resume, setResume] = useState({
     name: "",
@@ -241,7 +243,9 @@ function Mypage() {
           "이름·학교·전공은 꼭 입력하고, 자격증명은 비우지 말아 주세요.",
         );
       } else if (res.status === 403) {
-        setResumeMessage("문서 저장 동의 후 저장할 수 있어요. 아래에서 동의를 바꿔 주세요.");
+        setResumeMessage(
+          "문서 저장 동의 후 저장할 수 있어요. 아래에서 동의를 바꿔 주세요.",
+        );
       } else {
         setResumeMessage("저장 중 오류가 발생했습니다.");
       }
@@ -292,7 +296,8 @@ function Mypage() {
 
   // 포트폴리오 삭제
   const deletePortfolio = async () => {
-    if (!confirm("삭제 후에는 복구할 수 없습니다. 정말 삭제하시겠습니까?")) return;
+    if (!confirm("삭제 후에는 복구할 수 없습니다. 정말 삭제하시겠습니까?"))
+      return;
     try {
       const res = await fetch(`${API_URL}/mypage/resume/portfolio`, {
         method: "DELETE",
@@ -405,46 +410,64 @@ function Mypage() {
             )}
 
             {cls.map((cl) => (
-              /* 자소서 카드: 보기 */
+              /* 자소서 카드: 제목 줄 + 펼치면 본문 */
               <div
                 key={cl.cl_id}
-                className="rounded-2xl border border-gray-200 bg-white overflow-hidden"
+                className="rounded-2xl border border-gray-200 bg-white p-5 space-y-3"
               >
-                <div className="flex items-center justify-between gap-2 px-6 py-4 border-b border-gray-100">
-                  <h3 className="text-base font-extrabold text-gray-900 mr-auto">
+                {/* 윗줄: 제목 + 보기/닫기 + 삭제 */}
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h3 className="text-base font-extrabold text-gray-900">
                     {cl.title}
                   </h3>
-                  <button
-                    type="button"
-                    onClick={() => navigate("/cl", { state: { cl } })}
-                    className="rounded-lg border border-brand bg-white px-3 py-1.5 text-xs font-bold text-brand hover:bg-brand-soft transition-colors"
-                  >
-                    수정
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => deleteCl(cl.cl_id)}
-                    className="rounded-lg border border-danger-border bg-white px-3 py-1.5 text-xs font-semibold text-danger hover:bg-danger-bg transition-colors"
-                  >
-                    삭제
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setOpenClId(openClId === cl.cl_id ? null : cl.cl_id)
+                      }
+                      className="rounded-lg border border-brand bg-white px-3.5 py-1.5 text-xs font-bold text-brand hover:bg-brand-soft transition-colors"
+                    >
+                      {openClId === cl.cl_id ? "닫기" : "보기"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => deleteCl(cl.cl_id)}
+                      className="rounded-lg border border-danger-border bg-white px-3.5 py-1.5 text-xs font-semibold text-danger hover:bg-danger-bg transition-colors"
+                    >
+                      삭제
+                    </button>
+                  </div>
                 </div>
-                {/* 4칸 중 내용이 있는 칸만 보여준다 */}
-                <div className="p-6 space-y-4">
-                  {SECTIONS.map(
-                    ([key, label]) =>
-                      cl[key] && (
-                        <div key={key} className="space-y-1">
-                          <h4 className="text-xs font-extrabold text-gray-900">
-                            {label}
-                          </h4>
-                          <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
-                            {cl[key]}
-                          </p>
-                        </div>
-                      ),
-                  )}
-                </div>
+
+                {/* 펼친 카드: 4칸 중 내용이 있는 칸 + 왼쪽 아래 수정 버튼 */}
+                {openClId === cl.cl_id && (
+                  <>
+                    {SECTIONS.map(
+                      ([key, label]) =>
+                        cl[key] && (
+                          <div
+                            key={key}
+                            className="rounded-xl bg-gray-50 p-4 space-y-1.5 text-sm border border-gray-100"
+                          >
+                            <p className="font-bold text-gray-900">{label}</p>
+                            <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                              {cl[key]}
+                            </p>
+                          </div>
+                        ),
+                    )}
+                    <div className="flex justify-start">
+                      <button
+                        type="button"
+                        onClick={() => navigate("/cl", { state: { cl } })}
+                        className="rounded-lg bg-brand px-3.5 py-1.5 text-xs font-bold text-white hover:bg-brand-hover transition-colors"
+                      >
+                        수정
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             ))}
           </section>
@@ -587,9 +610,7 @@ function Mypage() {
                   </p>
                 )}
                 <label className="cursor-pointer rounded-lg border border-brand bg-white px-3 py-1.5 text-xs font-bold text-brand hover:bg-brand-soft transition-colors">
-                  {resume.has_portfolio
-                    ? "파일 변경"
-                    : "파일 선택"}
+                  {resume.has_portfolio ? "파일 변경" : "파일 선택"}
                   <input
                     type="file"
                     accept=".pdf,application/pdf"
