@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router";
 import ClModal from "../components/modals/ClModal";
 import ResumeModal from "../components/modals/ResumeModal";
@@ -23,27 +23,8 @@ function Interview() {
   const [isSaved, setIsSaved] = useState(false); // 이번 면접을 저장했는지
   const token = localStorage.getItem("access_token"); // 로그인 토큰 (없으면 비회원)
   const navigate = useNavigate(); // 페이지 이동 함수
+  const uploadTaskRef = useRef(null); // 서류 업로드 대기
 
-  const askQuestion = () => {
-    setTitle(`${jobCat.major} > ${jobCat.minor}`); //제목 변경
-    setMessages([]);
-    setEvidences([]);
-    setFilenames([]);
-    setIsSaved(false);
-    setIsGenerating(true);
-    // [심층질문/진행도 초기화] 새 질문 생성 시 1번째 카테고리(지원 동기)부터 시작
-    setCurrentCategoryIndex(0);
-
-    setTimeout(() => {
-      setMessages([
-        {
-          type: "question",
-          text: `안녕하세요, 지원자님. 면접에 앞서 간단한 자기소개 부탁드립니다.`,
-        },
-      ]);
-      setIsGenerating(false);
-    }, 2000);
-  };
   const handleAuthError = () => {
     localStorage.removeItem("access_token");
     localStorage.removeItem("user");
@@ -52,6 +33,74 @@ function Interview() {
       "로그인이 필요하거나 로그인 세션이 만료되었습니다. 홈 화면으로 이동합니다.",
     );
     navigate("/");
+  };
+
+  // 1. 서류 사전 업로드 (면접 시작 시 백그라운드 실행)
+  const uploadDocs = () => {
+    if (!resume?.file && !resume?.text && !cl?.file && !cl?.cl?.text) {
+      uploadTaskRef.current = null;
+      return;
+    }
+
+    const currentToken = localStorage.getItem("access_token");
+    const formData = new FormData();
+    if (resume?.file) formData.append("resume_pdf", resume.file);
+    else if (resume?.text) formData.append("my_resume", resume.text);
+    if (cl?.file) formData.append("cl_pdf", cl.file);
+    else if (cl?.cl) formData.append("my_cl", cl.cl.text);
+
+    uploadTaskRef.current = fetch(`${API_URL}/upload`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${currentToken}`,
+      },
+      body: formData,
+    })
+      .then((res) => {
+        if (res.status === 401) {
+          handleAuthError();
+          return null;
+        }
+        if (!res.ok) throw new Error("업로드 실패");
+        return res.json();
+      })
+      .then((data) => {
+        if (data?.filenames) {
+          setFilenames(data.filenames);
+          return data.filenames;
+        }
+        return [];
+      })
+      .catch((err) => {
+        console.error("업로드 중 오류:", err);
+        return [];
+      });
+  };
+
+  // 2. 면접 시작 (버튼 클릭 시: 화면 초기화 + 자기소개 안내 + 서류 업로드)
+  const startInterview = () => {
+    setTitle(`${jobCat.major} > ${jobCat.minor}`); // 제목 변경
+    setMessages([]);
+    setEvidences([]);
+    setFilenames([]);
+    setIsSaved(false);
+    // 첫 번째 카테고리(지원 동기)부터 시작
+    setCurrentCategoryIndex(0);
+
+    // 서류 등록 시 청킹/임베딩 시작
+    uploadDocs();
+
+    // 질문 준비 중 표시 후 자기소개 질문
+    setIsGenerating(true);
+    setTimeout(() => {
+      setIsGenerating(false);
+      setMessages([
+        {
+          type: "question",
+          text: `안녕하세요, 지원자님. 면접에 앞서 간단한 자기소개 부탁드립니다.`,
+        },
+      ]);
+    }, 2000);
   };
 
   // 질문과 그 뒤 답변을 한 쌍으로 묶어서 저장한다
@@ -124,6 +173,81 @@ function Interview() {
     }
   };
 
+  // 3. 질문 생성 (자기소개 답변 제출 시: 업로드된 filenames 기반)
+  const askQuestion = async (text, answerIndex, textarea) => {
+    setIsGenerating(true);
+    const currentToken = localStorage.getItem("access_token");
+    try {
+      // 1) 서류 업로드 진행 중이었다면 완료될 때까지 대기
+      let targetFilenames = filenames;
+      if (uploadTaskRef.current) {
+        const uploaded = await uploadTaskRef.current;
+        if (uploaded && uploaded.length > 0) {
+          targetFilenames = uploaded;
+        }
+      }
+
+      const formData = new FormData();
+      formData.append("job", title.split(" > ")[1] || jobCat.minor);
+
+      // 2) 업로드 완료된 filenames 있다면 (추출/청킹/임베딩 스킵)
+      if (targetFilenames && targetFilenames.length > 0) {
+        formData.append("filenames_json", JSON.stringify(targetFilenames));
+      } else {
+        // 업로드가 없었거나 실패했을 경우
+        if (resume?.file) formData.append("resume_pdf", resume.file);
+        else if (resume?.text) formData.append("my_resume", resume.text);
+        if (cl?.file) formData.append("cl_pdf", cl.file);
+        else if (cl?.cl) formData.append("my_cl", cl.cl.text);
+      }
+
+      const res = await fetch(`${API_URL}/question`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${currentToken}`,
+        },
+        body: formData,
+      });
+
+      if (res.status === 401) {
+        handleAuthError();
+        return;
+      }
+      if (!res.ok) {
+        throw new Error("요청에 실패했습니다.");
+      }
+
+      const data = await res.json();
+      if (!data.question) {
+        throw new Error("생성된 질문이 없습니다.");
+      }
+
+      const newFilenames = data.filenames || targetFilenames || [];
+      const firstEvidences = data.evidences || [];
+      setFilenames(newFilenames);
+      setEvidences([firstEvidences]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          type: "question",
+          category: CATEGORIES[0],
+          text: data.question,
+          isFollowup: false,
+          evidenceIndex: firstEvidences.length > 0 ? 1 : null,
+        },
+      ]);
+      verifyAnswer(answerIndex, text, newFilenames);
+    } catch {
+      setMessages((prev) => prev.slice(0, answerIndex));
+      textarea.value = text;
+      window.alert(
+        "질문 생성 중 오류가 발생했습니다. 다시 시도해 주세요.",
+      );
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const submitAnswer = async (e) => {
     if (isGenerating) return;
     const token = localStorage.getItem("access_token");
@@ -146,57 +270,7 @@ function Interview() {
 
     // 자기소개 답변 후 첫 질문 생성 (/question)
     if (messages.length === 1) {
-      setIsGenerating(true);
-      try {
-        const formData = new FormData();
-        formData.append("job", title.split(" > ")[1]);
-        if (resume?.file) formData.append("resume_pdf", resume.file);
-        else if (resume?.text) formData.append("my_resume", resume.text);
-        if (cl?.file) formData.append("cl_pdf", cl.file);
-        else if (cl?.cl) formData.append("my_cl", cl.cl.text);
-        const res = await fetch(`${API_URL}/question`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: formData,
-        });
-        if (res.status === 401) {
-          handleAuthError();
-          return;
-        }
-        if (!res.ok) {
-          throw new Error("질문 생성 요청에 실패했습니다.");
-        }
-
-        const data = await res.json();
-        if (!data.question) {
-          throw new Error("생성된 질문이 없습니다.");
-        }
-        const newFilenames = data.filenames || [];
-        const firstEvidences = data.evidences || [];
-        setFilenames(newFilenames);
-        setEvidences([firstEvidences]);
-        setMessages((prev) => [
-          ...prev,
-          {
-            type: "question",
-            category: CATEGORIES[0],
-            text: data.question,
-            isFollowup: false,
-            evidenceIndex: firstEvidences.length > 0 ? 1 : null,
-          },
-        ]);
-        verifyAnswer(answerIndex, text, newFilenames);
-      } catch {
-        setMessages((prev) => prev.slice(0, answerIndex));
-        textarea.value = text;
-        window.alert(
-          "질문 생성에 실패했습니다. 답변을 확인하고 다시 시도해 주세요.",
-        );
-      } finally {
-        setIsGenerating(false);
-      }
+      await askQuestion(text, answerIndex, textarea);
       return;
     }
 
@@ -479,7 +553,7 @@ function Interview() {
               type="button"
               disabled={isGenerating}
               className="btn-main w-full whitespace-nowrap rounded-xl bg-brand px-4 py-2.5 text-xs font-bold text-white hover:bg-brand-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              onClick={askQuestion}
+              onClick={startInterview}
             >
               {" "}
               면접 시작
