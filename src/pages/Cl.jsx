@@ -79,6 +79,10 @@ function Cl() {
         headers: headers,
         body: JSON.stringify({ motivation, experience, personality, plan }),
       });
+      if (res.status === 401) {
+        setTitleError("로그인이 만료되었습니다. 다시 로그인해 주세요.");
+        return;
+      }
       if (!res.ok) {
         setTitleError("제목을 불러오는 중 오류가 발생했습니다.");
         return;
@@ -129,7 +133,10 @@ function Cl() {
           plan,
         }),
       });
-      // 서버 오류(400, 502 등)는 catch로 안 가서, res.ok로 직접 확인
+      if (res.status === 401) {
+        setError("로그인이 만료되었습니다. 다시 로그인해 주세요.");
+        return;
+      }
       if (!res.ok) {
         setError("결과를 불러오는 중 오류가 발생했습니다.");
         return;
