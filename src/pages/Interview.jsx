@@ -121,7 +121,8 @@ function Interview() {
       return;
     }
 
-    const [major, minor] = title.split(" > "); // 면접 시작할 때의 직무
+        const [major, minor] = title.split(" > "); // 면접 시작할 때의 직무
+    const currentToken = localStorage.getItem("access_token");
     try {
       const res = await fetch(`${API_URL}/interview/save`, {
         method: "POST",
@@ -135,13 +136,23 @@ function Interview() {
         handleAuthError();
         return;
       }
-      if (!res.ok) throw new Error("저장 실패");
+      if (!res.ok) {
+        // 403(저장 동의 안 함) 같은 경우 서버 안내 문장을 그대로 보여 준다
+        const data = await res.json().catch(() => ({}));
+        window.alert(
+          typeof data.detail === "string"
+            ? data.detail
+            : "저장하지 못했습니다. 다시 시도해 주세요.",
+        );
+        return;
+      }
       setIsSaved(true);
       window.alert("대화를 저장했어요. 마이페이지에서 볼 수 있어요.");
     } catch {
       window.alert("저장하지 못했습니다. 다시 시도해 주세요.");
     }
   };
+
 
   // 답변과 서류를 비교해서, 결과를 그 답변 메시지에 붙인다
   const verifyAnswer = async (

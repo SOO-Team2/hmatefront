@@ -272,7 +272,7 @@ function Mypage() {
         setResume({ ...resume, has_portfolio: true });
         setResumeMessage("포트폴리오를 등록했습니다.");
       } else {
-        const data = await res.json();
+        const data = await res.json().catch(() => ({})); // JSON이 아닌 오류 응답 대비
         setResumeMessage(data.detail || "업로드 중 오류가 발생했습니다.");
       }
     } catch {
@@ -288,7 +288,9 @@ function Mypage() {
       });
       if (!res.ok) return setResumeMessage("등록된 포트폴리오가 없습니다.");
       const blob = await res.blob();
-      window.open(URL.createObjectURL(blob));
+      const url = URL.createObjectURL(blob);
+      window.open(url);
+      setTimeout(() => URL.revokeObjectURL(url), 60000); // 1분 뒤 메모리에서 해제
     } catch {
       setResumeMessage("서버에 연결할 수 없습니다.");
     }
